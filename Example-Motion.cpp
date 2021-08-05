@@ -19,7 +19,7 @@ void msgUser(const char *msg) {
 
 #define ACC_LIM_RPM_PER_SEC	100000
 #define VEL_LIM_RPM			700
-#define MOVE_DISTANCE_CNTS	6400*.75
+#define MOVE_DISTANCE_CNTS	6400
 #define NUM_MOVES			25
 #define TIME_TILL_TIMEOUT	10000	//The timeout used for homing(ms)
 #define DELAY				500

@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+Win32/Debug/intermediate/Example-Motion.log
+Win32/Debug/intermediate/Example-Motion.tlog/CL.command.1.tlog
+Win32/Debug/intermediate/Example-Motion.tlog/Example-Motion.lastbuildstate
+Win32/Debug/intermediate/Example-Motion.tlog/unsuccessfulbuild
+Win32/Debug/intermediate/vc142.idb
+Win32/Debug/intermediate/vc142.pdb
+.vs/Example-Motion/v16/Browse.VC.opendb
+.vs/Example-Motion/v16/Browse.VC.db-wal
+.vs/Example-Motion/v16/Browse.VC.db-shm
+.vs/Example-Motion/v16/Browse.VC.db
+.vs/Example-Motion/v16/Browse.VC.db
+.vs/Example-Motion/v16/Browse.VC.db
