@@ -1,0 +1,6 @@
+﻿  Copying sFoundation Files
+  cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\"
+          1 file(s) copied.
+          1 file(s) copied.
+          1 file(s) copied.
+  bench_test_1.vcxproj -> C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exe
