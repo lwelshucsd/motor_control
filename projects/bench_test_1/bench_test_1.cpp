@@ -19,7 +19,7 @@ void msgUser(const char *msg) {
 
 #define ACC_LIM_RPM_PER_SEC	100000
 #define VEL_LIM_RPM			700
-#define MOVE_DISTANCE_CNTS	6400*.75
+#define MOVE_DISTANCE_CNTS	6400
 #define NUM_MOVES			25
 #define TIME_TILL_TIMEOUT	10000	//The timeout used for homing(ms)
 #define DELAY				500
@@ -154,8 +154,9 @@ size_t portCount = 0;
 
 			Node1.Motion.PosnMeasured.AutoRefresh(true);
 			Node2.Motion.PosnMeasured.AutoRefresh(true);
-			int vel_lim1 = 50;
-			int vel_lim2 = 700;
+			int vel_lim1 = 100;
+			int vel_lim2 = 100;
+			int move_dist_cnts = MOVE_DISTANCE_CNTS;
 			for (size_t i = 0; i < NUM_MOVES; i++)
 			{
 				Node1.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
@@ -178,8 +179,8 @@ size_t portCount = 0;
 //					theNode.Motion.VelLimit = VEL_LIM_RPM;				//Set Velocity Limit (RPM)
 
 					//printf("Moving Node \t%zi \n", iNode);
-					Node1.Motion.MovePosnStart(MOVE_DISTANCE_CNTS);			//Execute 10000 encoder count move 
-					Node2.Motion.MovePosnStart(MOVE_DISTANCE_CNTS);			//Execute 10000 encoder count move 
+					Node1.Motion.MovePosnStart(move_dist_cnts);			//Execute 10000 encoder count move 
+					Node2.Motion.MovePosnStart(-move_dist_cnts);			//Execute 10000 encoder count move 
 
 					//printf("%f estimated time.\n", theNode.Motion.MovePosnDurationMsec(MOVE_DISTANCE_CNTS));
 					double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //myMgr->TimeStampMsec() + theNode.Motion.MovePosnDurationMsec(MOVE_DISTANCE_CNTS) + 100;			//define a timeout in case the node is unable to enable
@@ -193,8 +194,9 @@ size_t portCount = 0;
 						}
 					}
 					myMgr->Delay(DELAY);
-					vel_lim1 = vel_lim1 + DELTA_V;
-					vel_lim2 = vel_lim2 - DELTA_V;
+					//vel_lim1 = vel_lim1 + DELTA_V;
+					//vel_lim2 = vel_lim2 - DELTA_V;
+					move_dist_cnts = -move_dist_cnts;
 					printf("Node 0: %.1f, Node 1: %.1f\n", (double)Node1.Motion.PosnMeasured, (double)Node2.Motion.PosnMeasured);
 					printf("Node 0: %.1d, Node 1: %.1d\n", vel_lim1, vel_lim2);
 					//printf("Node \t%zi Move Done\n", iNode);
@@ -232,4 +234,3 @@ size_t portCount = 0;
 	msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 	return 0;			//End program
 }
-
