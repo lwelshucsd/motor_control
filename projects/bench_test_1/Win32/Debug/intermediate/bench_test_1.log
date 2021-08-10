@@ -1,4 +1,7 @@
 ﻿  bench_test_1.cpp
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(91,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(57): warning C4715: 'setPosn': not all control paths return a value
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(86): warning C4715: 'jogPosn': not all control paths return a value
   Copying sFoundation Files
   cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\"
           1 file(s) copied.
