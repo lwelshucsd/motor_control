@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include "pubSysCls.h"	
+#include <Windows.h>
 
 using namespace sFnd;
 
@@ -28,12 +29,12 @@ char msgUser(const char *msg) {
 
 
 std::vector<double> setPosn(class INode&Node1, class INode&Node2, SysManager* myMgr, bool remoteMode) {
-	int move_dist_cnts;
+	double move_dist_cnts;
 	std::cout << "Type a new position in counts:";
 	std::cin >> move_dist_cnts;
-
 	if (remoteMode) {
-		//do something
+		printf("Simulating movement.\n");
+		return std::vector<double> {move_dist_cnts, move_dist_cnts};
 	}
 	else {
 		Node1.Motion.MovePosnStart(move_dist_cnts, true);			//execute encoder count move 
@@ -56,13 +57,14 @@ std::vector<double> setPosn(class INode&Node1, class INode&Node2, SysManager* my
 	}
 }
 
-std::vector<double> jogPosn(class INode& Node1, class INode& Node2, SysManager* myMgr, bool remoteMode) {
-	int move_dist_cnts;
+std::vector<double> jogPosn(class INode& Node1, class INode& Node2, SysManager* myMgr, bool remoteMode, std::vector<double> currentPos) {
+	double move_dist_cnts;
 	std::cout << "Type a jog distance in counts:";
 	std::cin >> move_dist_cnts;
 
 	if (remoteMode) {
-		//do something
+		printf("Simulating movement.\n");
+		return std::vector<double> {currentPos[0]+move_dist_cnts, currentPos[1]+move_dist_cnts};
 	}
 	else {
 		Node1.Motion.MovePosnStart(move_dist_cnts, false);			//execute encoder count move 
@@ -93,14 +95,123 @@ void posnPrint(std::vector <double> const& a) {
 	std::cout << "\b\b)\n";
 }
 
-void commandLineControl(class INode& Node1, class INode& Node2, SysManager* myMgr, bool remoteMode) {
+int commandLineControl(class IPort& myPort, SysManager* myMgr, bool remoteMode) {
+	INode& Node1 = myPort.Nodes(0);
+	INode& Node2 = myPort.Nodes(1);
+
+	if (!remoteMode) {
+		//This section initializes the motors and tries to home them.
+					//Once the code gets past this point, it can be assumed that the Port has been opened without issue
+			//Now we can get a reference to our port object which we will use to access the node objects
+
+		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
+			// Create a shortcut reference for a node
+			INode& theNode = myPort.Nodes(iNode);
+
+			theNode.EnableReq(false);				//Ensure Node is disabled before loading config file
+
+			myMgr->Delay(200);
+
+
+			//theNode.Setup.ConfigLoad("Config File path");
+
+
+			printf("   Node[%d]: type=%d\n", int(iNode), theNode.Info.NodeType());
+			printf("            userID: %s\n", theNode.Info.UserID.Value());
+			printf("        FW version: %s\n", theNode.Info.FirmwareVersion.Value());
+			printf("          Serial #: %d\n", theNode.Info.SerialNumber.Value());
+			printf("             Model: %s\n", theNode.Info.Model.Value());
+
+			//The following statements will attempt to enable the node.  First,
+			// any shutdowns or NodeStops are cleared, finally the node is enabled
+			theNode.Status.AlertsClear();					//Clear Alerts on node 
+			theNode.Motion.NodeStopClear();	//Clear Nodestops on Node  				
+			theNode.EnableReq(true);					//Enable node 
+			//At this point the node is enabled
+			printf("Node \t%zi enabled\n", iNode);
+			double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
+																		//This will loop checking on the Real time values of the node's Ready status
+			while (!theNode.Motion.IsReady()) {
+				if (myMgr->TimeStampMsec() > timeout) {
+					printf("Error: Timed out waiting for Node %d to enable\n", iNode);
+					msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
+					return -2;
+				}
+			}
+			//At this point the Node is enabled, and we will now check to see if the Node has been homed
+			//Check the Node to see if it has already been homed, 
+			if (theNode.Motion.Homing.HomingValid())
+			{
+				if (theNode.Motion.Homing.WasHomed())
+				{
+					printf("Node %d has already been homed, current position is: \t%8.0f \n", iNode, theNode.Motion.PosnMeasured.Value());
+					printf("Rehoming Node... \n");
+				}
+				else
+				{
+					printf("Node [%d] has not been homed.  Homing Node now...\n", iNode);
+				}
+				//Now we will home the Node
+				theNode.Motion.Homing.Initiate();
+
+				timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
+																		// Basic mode - Poll until disabled
+				while (!theNode.Motion.Homing.WasHomed()) {
+					if (myMgr->TimeStampMsec() > timeout) {
+						printf("Node did not complete homing:  \n\t -Ensure Homing settings have been defined through ClearView. \n\t -Check for alerts/Shutdowns \n\t -Ensure timeout is longer than the longest possible homing move.\n");
+						msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
+						return -2;
+					}
+				}
+				printf("Node completed homing\n");
+			}
+			else {
+				printf("Node[%d] has not had homing setup through ClearView.  The node will not be homed.\n", iNode);
+			}
+
+		}
+
+		///////////////////////////////////////////////////////////////////////////////////////
+		//At this point we will execute 10 rev moves sequentially on each axis
+		//////////////////////////////////////////////////////////////////////////////////////
+		INode& Node1 = myPort.Nodes(0);
+		INode& Node2 = myPort.Nodes(1);
+
+		Node1.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
+		Node2.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
+
+		Node1.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
+		Node2.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
+
+		Node1.Motion.PosnMeasured.AutoRefresh(true);
+		Node2.Motion.PosnMeasured.AutoRefresh(true);
+
+		Node1.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
+		Node2.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
+
+		Node1.Motion.VelLimit = VEL_LIM_RPM;
+		Node2.Motion.VelLimit = VEL_LIM_RPM;
+		printf("Moving Nodes...Current Positions: \n");
+	}	
+	
 	bool quit = false;
+	int command;
 	std::vector<double> currentPos;
+	if (remoteMode) { currentPos = { 0,0 }; }
 	while (!quit) {
+		std::cin.clear();
+		command = 0;
 		std::cout << "Please input an operation number.\n";
 		std::cout << "1: Set Position\n2: Jog Position\n3: Quit\n";
-		int command;
 		std::cin >> command;
+		//std::cout << command;
+		if (std::cin.fail()) {
+			std::cout << "That is not a valid command, homie.\n";
+			Sleep(250);
+			std::cin.clear();
+			std::cin.ignore(100, '\n');
+			continue;
+		}
 		switch (command)
 		{
 		case 1:
@@ -108,7 +219,7 @@ void commandLineControl(class INode& Node1, class INode& Node2, SysManager* myMg
 			posnPrint(currentPos);
 			break;
 		case 2:
-			currentPos = jogPosn(Node1, Node2, myMgr, remoteMode);
+			currentPos = jogPosn(Node1, Node2, myMgr, remoteMode, currentPos);
 			posnPrint(currentPos);
 			break;
 		case 3:
@@ -116,11 +227,11 @@ void commandLineControl(class INode& Node1, class INode& Node2, SysManager* myMg
 			quit = true;
 			break;
 		default:
-			std::cout << "That is not a valid command. Please input one of the following: quit, set, jog.";
-			break;
+			std::cout << "That is not a valid command.\n";
+			Sleep(250);
 		}
 	}
-	return;
+	return 0;
 }
 
 
@@ -154,133 +265,41 @@ size_t portCount = 0;
 		if (portCount <= 0) {
 			
 			printf("Unable to locate SC hub port, enable remote mode?\n");
-			char remoteMode;
+			char remoteModeChar;
 			std::cout << "y/n?:";
-			std::cin >> remoteMode;
+			std::cin >> remoteModeChar;
 
-			if (remoteMode == 'y' || remoteMode == 'Y') {
-				bool remoteMode = true;
+			if (remoteModeChar == 'y' || remoteModeChar == 'Y') {
+				remoteMode = 1;
 				printf("Remote Work Mode Enabled\n");
 				printf("Commands will be simulated, but no attempt to pass the command over USB will be made.\n");
 				portCount = 1;
 			}
-			else if (remoteMode == 'n' || remoteMode == 'N') {
+			else if (remoteModeChar == 'n' || remoteModeChar == 'N') {
 				char a = msgUser("Quitting program. Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
-
-				return -1;  //This terminates the main program
+				msgUser("");
+				//Sleep(500);
+				return 0;  //This terminates the main program
+			}
+			else {
+				char a = msgUser("Inavlid response. Quitting program. Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
+				msgUser("");
+				//Sleep(500);
+				return 0;  //This terminates the main program
 			}
 		}
-	
-
-		//printf("\n I will now open port \t%i \n \n", portnum);
-		myMgr->PortsOpen(portCount);				//Open the port
-
-		for (size_t i = 0; i < portCount; i++) {
-			IPort &myPort = myMgr->Ports(i);
+		//std::cout << remoteMode;
+		if (!remoteMode) {
+			//printf("\n I will now open port \t%i \n \n", portnum);
+			myMgr->PortsOpen(portCount);				//Open the port
+			//for (size_t i = 0; i < portCount; i++) {
+			IPort& myPort = myMgr->Ports(0);
 
 			printf(" Port[%d]: state=%d, nodes=%d\n",
 				myPort.NetNumber(), myPort.OpenState(), myPort.NodeCount());
 
+			commandLineControl(myPort, myMgr, remoteMode);
 
-			//Once the code gets past this point, it can be assumed that the Port has been opened without issue
-			//Now we can get a reference to our port object which we will use to access the node objects
-
-			for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
-				// Create a shortcut reference for a node
-				INode &theNode = myPort.Nodes(iNode);
-
-				theNode.EnableReq(false);				//Ensure Node is disabled before loading config file
-
-				myMgr->Delay(200);
-
-
-				//theNode.Setup.ConfigLoad("Config File path");
-
-
-				printf("   Node[%d]: type=%d\n", int(iNode), theNode.Info.NodeType());
-				printf("            userID: %s\n", theNode.Info.UserID.Value());
-				printf("        FW version: %s\n", theNode.Info.FirmwareVersion.Value());
-				printf("          Serial #: %d\n", theNode.Info.SerialNumber.Value());
-				printf("             Model: %s\n", theNode.Info.Model.Value());
-
-				//The following statements will attempt to enable the node.  First,
-				// any shutdowns or NodeStops are cleared, finally the node is enabled
-				theNode.Status.AlertsClear();					//Clear Alerts on node 
-				theNode.Motion.NodeStopClear();	//Clear Nodestops on Node  				
-				theNode.EnableReq(true);					//Enable node 
-				//At this point the node is enabled
-				printf("Node \t%zi enabled\n", iNode);
-				double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
-																			//This will loop checking on the Real time values of the node's Ready status
-				while (!theNode.Motion.IsReady()) {
-					if (myMgr->TimeStampMsec() > timeout) {
-						printf("Error: Timed out waiting for Node %d to enable\n", iNode);
-						msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
-						return -2;
-					}
-				}
-				//At this point the Node is enabled, and we will now check to see if the Node has been homed
-				//Check the Node to see if it has already been homed, 
-				if (theNode.Motion.Homing.HomingValid())
-				{
-					if (theNode.Motion.Homing.WasHomed())
-					{
-						printf("Node %d has already been homed, current position is: \t%8.0f \n", iNode, theNode.Motion.PosnMeasured.Value());
-						printf("Rehoming Node... \n");
-					}
-					else
-					{
-						printf("Node [%d] has not been homed.  Homing Node now...\n", iNode);
-					}
-					//Now we will home the Node
-					theNode.Motion.Homing.Initiate();
-
-					timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
-																			// Basic mode - Poll until disabled
-					while (!theNode.Motion.Homing.WasHomed()) {
-						if (myMgr->TimeStampMsec() > timeout) {
-							printf("Node did not complete homing:  \n\t -Ensure Homing settings have been defined through ClearView. \n\t -Check for alerts/Shutdowns \n\t -Ensure timeout is longer than the longest possible homing move.\n");
-							msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
-							return -2;
-						}
-					}
-					printf("Node completed homing\n");
-				}
-				else {
-					printf("Node[%d] has not had homing setup through ClearView.  The node will not be homed.\n", iNode);
-				}
-				
-			}
-
-			///////////////////////////////////////////////////////////////////////////////////////
-			//At this point we will execute 10 rev moves sequentially on each axis
-			//////////////////////////////////////////////////////////////////////////////////////
-			INode& Node1 = myPort.Nodes(0);
-			INode& Node2 = myPort.Nodes(1);
-
-			Node1.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
-			Node2.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
-
-			Node1.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
-			Node2.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
-
-			Node1.Motion.PosnMeasured.AutoRefresh(true);
-			Node2.Motion.PosnMeasured.AutoRefresh(true);
-
-			Node1.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
-			Node2.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
-
-			Node1.Motion.VelLimit = VEL_LIM_RPM;
-			Node2.Motion.VelLimit = VEL_LIM_RPM;
-			printf("Moving Nodes...Current Positions: \n");
-
-
-			commandLineControl(Node1, Node2, myMgr, remoteMode);
-	
-
-		//////////////////////////////////////////////////////////////////////////////////////////////
-		//After moves have completed Disable node, and close ports
-		//////////////////////////////////////////////////////////////////////////////////////////////
 			printf("Disabling nodes, and closing port\n");
 			//Disable Nodes
 
@@ -289,6 +308,20 @@ size_t portCount = 0;
 				myPort.Nodes(iNode).EnableReq(false);
 			}
 		}
+		else {
+		//printf("test");
+		IPort& myPort = myMgr->Ports(0);
+		commandLineControl(myPort, myMgr, remoteMode);
+		}
+
+		
+	
+
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	//After moves have completed Disable node, and close ports
+	//////////////////////////////////////////////////////////////////////////////////////////////
+
+		//}
 	}
 	catch (mnErr& theErr)
 	{
@@ -300,7 +333,7 @@ size_t portCount = 0;
 		msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 		return 0;  //This terminates the main program
 	}
-	msgUser("");
+	msgUser("                       ");
 	// 
 	msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 
