@@ -19,31 +19,34 @@ char msgUser(const char *msg) {
 //sequential repeated moves on each axis.
 //*********************************************************************************
 
-#define ACC_LIM_RPM_PER_SEC	100000
-#define VEL_LIM_RPM			60
-#define MOVE_DISTANCE_CNTS	6400
-//#define NUM_MOVES			1
-#define TIME_TILL_TIMEOUT	100000	//The timeout used for homing(ms)
+#define ACC_LIM_RPM_PER_SEC	50000
+#define VEL_LIM_RPM			180
+#define MAX_VEL_LIM			300
 #define DELAY				500
-#define DELTA_V				26
+//#define MOVE_DISTANCE_CNTS	6400
+//#define NUM_MOVES			1
+
+#define TIME_TILL_TIMEOUT	100000	//The timeout used for homing(ms)
 
 
-std::vector<double> setPosn(class INode&Node1, class INode&Node2, SysManager* myMgr, bool remoteMode) {
+
+std::vector<double> setPosn(class INode&Node1, class INode&Node2, SysManager* myMgr, bool rMode) {
 	double move_dist_cnts;
-	std::cout << "Type a new position in counts:";
+	bool moveIsAbsolute = true;
+	std::cout << "Type a distance in counts:";
 	std::cin >> move_dist_cnts;
-	if (remoteMode) {
+	if (rMode) {
 		printf("Simulating movement.\n");
 		return std::vector<double> {move_dist_cnts, move_dist_cnts};
 	}
 	else {
-		Node1.Motion.MovePosnStart(move_dist_cnts, true);			//execute encoder count move 
-		Node2.Motion.MovePosnStart(-move_dist_cnts, true);			//execute encoder count move 
+		Node1.Motion.MovePosnStart(move_dist_cnts, moveIsAbsolute);			//execute encoder count move 
+		Node2.Motion.MovePosnStart(-move_dist_cnts, moveIsAbsolute);			//execute encoder count move 
 
 		double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //mymgr->timestampmsec() + thenode.motion.moveposndurationmsec(move_distance_cnts) + 100;			//define a timeout in case the node is unable to enable
 
 
-		while (!Node1.Motion.MoveIsDone() || !Node2.Motion.MoveIsDone()) {
+		while (!Node1.Motion.MoveIsDone()){// || !Node2.Motion.MoveIsDone()) {
 			if (myMgr->TimeStampMsec() > timeout) {
 				printf("error: timed out waiting for move to complete\n");
 				msgUser("press any key to continue."); //pause so the user can see the error message; waits for user to press a key
@@ -52,28 +55,28 @@ std::vector<double> setPosn(class INode&Node1, class INode&Node2, SysManager* my
 		}
 		myMgr->Delay(DELAY);
 		//std::vector<int> 
-		return std::vector<double> {(double)Node1.Motion.PosnMeasured, (double)Node2.Motion.PosnMeasured};
+		return std::vector<double> {(double)Node1.Motion.PosnMeasured};//, (double)Node2.Motion.PosnMeasured};
 		//printf("Node 0: %.1f, Node 1: %.1f\n", (double)Node1.Motion.PosnMeasured, (double)Node2.Motion.PosnMeasured);
 	}
 }
 
-std::vector<double> jogPosn(class INode& Node1, class INode& Node2, SysManager* myMgr, bool remoteMode, std::vector<double> currentPos) {
+std::vector<double> jogPosn(class INode& Node1, class INode& Node2, SysManager* myMgr, bool rMode, std::vector<double> posn) {
 	double move_dist_cnts;
 	std::cout << "Type a jog distance in counts:";
 	std::cin >> move_dist_cnts;
 
-	if (remoteMode) {
+	if (rMode) {
 		printf("Simulating movement.\n");
-		return std::vector<double> {currentPos[0]+move_dist_cnts, currentPos[1]+move_dist_cnts};
+		return std::vector<double> {posn[0]+move_dist_cnts, posn[1]+move_dist_cnts};
 	}
 	else {
 		Node1.Motion.MovePosnStart(move_dist_cnts, false);			//execute encoder count move 
-		Node2.Motion.MovePosnStart(-move_dist_cnts, false);			//execute encoder count move 
+		//Node2.Motion.MovePosnStart(-move_dist_cnts, false);			//execute encoder count move 
 
 		double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //mymgr->timestampmsec() + thenode.motion.moveposndurationmsec(move_distance_cnts) + 100;			//define a timeout in case the node is unable to enable
 
 
-		while (!Node1.Motion.MoveIsDone() || !Node2.Motion.MoveIsDone()) {
+		while (!Node1.Motion.MoveIsDone()){// || !Node2.Motion.MoveIsDone()) {
 			if (myMgr->TimeStampMsec() > timeout) {
 				printf("error: timed out waiting for move to complete\n");
 				msgUser("press any key to continue."); //pause so the user can see the error message; waits for user to press a key
@@ -82,7 +85,7 @@ std::vector<double> jogPosn(class INode& Node1, class INode& Node2, SysManager* 
 		}
 		myMgr->Delay(DELAY);
 		//std::vector<int> 
-		return std::vector<double> {(double)Node1.Motion.PosnMeasured, (double)Node2.Motion.PosnMeasured};
+		return std::vector<double> {(double)Node1.Motion.PosnMeasured};//, (double)Node2.Motion.PosnMeasured};
 		//printf("Node 0: %.1f, Node 1: %.1f\n", (double)Node1.Motion.PosnMeasured, (double)Node2.Motion.PosnMeasured);
 	}
 }
@@ -95,14 +98,15 @@ void posnPrint(std::vector <double> const& a) {
 	std::cout << "\b\b)\n";
 }
 
-int commandLineControl(class IPort& myPort, SysManager* myMgr, bool remoteMode) {
+int commandLineControl(class IPort& myPort, SysManager* myMgr, bool rMode) {
+	// Initialize variables for use in 
 	INode& Node1 = myPort.Nodes(0);
 	INode& Node2 = myPort.Nodes(1);
 
-	if (!remoteMode) {
+	if (!rMode) {
 		//This section initializes the motors and tries to home them.
-					//Once the code gets past this point, it can be assumed that the Port has been opened without issue
-			//Now we can get a reference to our port object which we will use to access the node objects
+		//Once the code gets past this point, it can be assumed that the Port has been opened without issue
+		//Now we can get a reference to our port object which we will use to access the node objects
 
 		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
 			// Create a shortcut reference for a node
@@ -172,42 +176,51 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool remoteMode) 
 		}
 
 		///////////////////////////////////////////////////////////////////////////////////////
-		//At this point we will execute 10 rev moves sequentially on each axis
+		//At this point we will create the node shortcuts and set their parameters.
 		//////////////////////////////////////////////////////////////////////////////////////
-		INode& Node1 = myPort.Nodes(0);
-		INode& Node2 = myPort.Nodes(1);
+		
+		//INode& Node1 = myPort.Nodes(0);
+		//INode& Node2 = myPort.Nodes(1);
+		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
+			//std::cout << iNode;
+			myPort.Nodes(iNode).AccUnit(INode::RPM_PER_SEC);
+			myPort.Nodes(iNode).VelUnit(INode::RPM);
+			myPort.Nodes(iNode).Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
+			myPort.Nodes(iNode).Motion.VelLimit = VEL_LIM_RPM;
+		}
+		//Node1.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
+		//Node2.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
 
-		Node1.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
-		Node2.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
+		//Node1.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
+		//Node2.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
 
-		Node1.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
-		Node2.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
+		//Node1.Motion.PosnMeasured.AutoRefresh(true);
+		//Node2.Motion.PosnMeasured.AutoRefresh(true);
 
-		Node1.Motion.PosnMeasured.AutoRefresh(true);
-		Node2.Motion.PosnMeasured.AutoRefresh(true);
+		//Node1.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
+		//Node2.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
 
-		Node1.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
-		Node2.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
-
-		Node1.Motion.VelLimit = VEL_LIM_RPM;
-		Node2.Motion.VelLimit = VEL_LIM_RPM;
+		//Node1.Motion.VelLimit = VEL_LIM_RPM;
+		//Node2.Motion.VelLimit = VEL_LIM_RPM;
 		printf("Moving Nodes...Current Positions: \n");
 	}	
 	
 	bool quit = false;
 	int command;
-	std::vector<double> currentPos;
-	if (remoteMode) { currentPos = { 0,0 }; }
+	std::vector<double> posn;
+	if (rMode) { posn = { 0,0 }; }
+	double velocity_limit = VEL_LIM_RPM;
 	while (!quit) {
+
 		std::cin.clear();
 		command = 0;
+		printf("Current velocity limit (RPM): %d\n", velocity_limit);
 		std::cout << "Please input an operation number.\n";
-		std::cout << "1: Set Position\n2: Jog Position\n3: Quit\n";
+		std::cout << "1: Set Position\n2: Jog Position\n3: Change Velocity Limit\n4: Quit\n";
 		std::cin >> command;
-		//std::cout << command;
+
 		if (std::cin.fail()) {
-			std::cout << "That is not a valid command, homie.\n";
-			Sleep(250);
+			std::cout << "That is not a valid command.\n";
 			std::cin.clear();
 			std::cin.ignore(100, '\n');
 			continue;
@@ -215,20 +228,26 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool remoteMode) 
 		switch (command)
 		{
 		case 1:
-			currentPos = setPosn(Node1, Node2, myMgr, remoteMode);
-			posnPrint(currentPos);
+			posn = setPosn(Node1, Node2, myMgr, rMode);
+			posnPrint(posn);
 			break;
 		case 2:
-			currentPos = jogPosn(Node1, Node2, myMgr, remoteMode, currentPos);
-			posnPrint(currentPos);
+			posn = jogPosn(Node1, Node2, myMgr, rMode, posn);
+			posnPrint(posn);
 			break;
 		case 3:
+			std::cout << "Please enter a new velocity in RPM:";
+			std::cin >> velocity_limit;
+			for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
+				myPort.Nodes(iNode).Motion.VelLimit = VEL_LIM_RPM;
+			}
+			break;
+		case 4:
 			std::cout << "Closing program.";
 			quit = true;
 			break;
 		default:
 			std::cout << "That is not a valid command.\n";
-			Sleep(250);
 		}
 	}
 	return 0;
@@ -261,67 +280,57 @@ size_t portCount = 0;
 			myMgr->ComHubPort(portCount, comHubPorts[portCount].c_str()); 	//define the first SC Hub port (port 0) to be associated 
 											// with COM portnum (as seen in device manager)
 		}
-		bool remoteMode = false;
+		bool rMode = false; // assume that there will be a hub with motors
 		if (portCount <= 0) {
 			
+			// If there is no hub, either quit the program or enable remote work mode.
 			printf("Unable to locate SC hub port, enable remote mode?\n");
-			char remoteModeChar;
+			char rModeChar;
 			std::cout << "y/n?:";
-			std::cin >> remoteModeChar;
-
-			if (remoteModeChar == 'y' || remoteModeChar == 'Y') {
-				remoteMode = 1;
+			std::cin >> rModeChar; //y/n input 
+			if (rModeChar == 'y' || rModeChar == 'Y') {
+				rMode = 1;
 				printf("Remote Work Mode Enabled\n");
 				printf("Commands will be simulated, but no attempt to pass the command over USB will be made.\n");
 				portCount = 1;
 			}
-			else if (remoteModeChar == 'n' || remoteModeChar == 'N') {
+			else if (rModeChar == 'n' || rModeChar == 'N') {
 				char a = msgUser("Quitting program. Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 				msgUser("");
-				//Sleep(500);
 				return 0;  //This terminates the main program
 			}
 			else {
 				char a = msgUser("Inavlid response. Quitting program. Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 				msgUser("");
-				//Sleep(500);
 				return 0;  //This terminates the main program
 			}
 		}
-		//std::cout << remoteMode;
-		if (!remoteMode) {
-			//printf("\n I will now open port \t%i \n \n", portnum);
+		if (!rMode) {
 			myMgr->PortsOpen(portCount);				//Open the port
-			//for (size_t i = 0; i < portCount; i++) {
 			IPort& myPort = myMgr->Ports(0);
 
 			printf(" Port[%d]: state=%d, nodes=%d\n",
 				myPort.NetNumber(), myPort.OpenState(), myPort.NodeCount());
 
-			commandLineControl(myPort, myMgr, remoteMode);
+			//Initiate the acutal control loop
+			commandLineControl(myPort, myMgr, rMode);
 
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			//After the program is quit, disable nodes, and close ports
+			//////////////////////////////////////////////////////////////////////////////////////////////
 			printf("Disabling nodes, and closing port\n");
-			//Disable Nodes
-
 			for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
 				// Create a shortcut reference for a node
 				myPort.Nodes(iNode).EnableReq(false);
 			}
 		}
 		else {
-		//printf("test");
+		//Create an empty port object to use in funcitons
 		IPort& myPort = myMgr->Ports(0);
-		commandLineControl(myPort, myMgr, remoteMode);
+		commandLineControl(myPort, myMgr, rMode);
 		}
 
-		
-	
 
-	//////////////////////////////////////////////////////////////////////////////////////////////
-	//After moves have completed Disable node, and close ports
-	//////////////////////////////////////////////////////////////////////////////////////////////
-
-		//}
 	}
 	catch (mnErr& theErr)
 	{
@@ -333,8 +342,8 @@ size_t portCount = 0;
 		msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 		return 0;  //This terminates the main program
 	}
-	msgUser("                       ");
-	// 
+	
+	msgUser("");	//The following line would not actually pause without this.
 	msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 
 	// Close down the ports
