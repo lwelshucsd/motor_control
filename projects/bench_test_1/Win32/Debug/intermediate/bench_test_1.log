@@ -1,9 +1,6 @@
 ﻿  bench_test_1.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(43,30): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(44,30): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(73,30): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(96,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(217,10): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'double'
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(62,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(88,45): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
   Copying sFoundation Files
   cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\"
           1 file(s) copied.

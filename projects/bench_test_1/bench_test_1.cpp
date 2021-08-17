@@ -1,15 +1,21 @@
 //Required include files
 #include <stdio.h>	
 #include <string>
+#include <math.h>
 #include <iostream>
 #include "pubSysCls.h"	
 #include <Windows.h>
 
 using namespace sFnd;
+using std::vector;
+using std::cin;
+using std::cout;
+using std::string;
+
 
 // Send message and wait for newline
 char msgUser(const char *msg) {
-	std::cout << msg;
+	cout << msg;
 	return getchar();
 }
 
@@ -21,85 +27,86 @@ char msgUser(const char *msg) {
 
 #define ACC_LIM_RPM_PER_SEC	50000
 #define VEL_LIM_RPM			180
-#define MAX_VEL_LIM			300
-#define DELAY				500
-//#define MOVE_DISTANCE_CNTS	6400
-//#define NUM_MOVES			1
-
+#define MAX_VEL_LIM			500
+#define LONG_DELAY			500
+#define SHORT_DELAY			100
 #define TIME_TILL_TIMEOUT	100000	//The timeout used for homing(ms)
 
-
-
-std::vector<double> setPosn(class INode&Node1, class INode&Node2, SysManager* myMgr, bool rMode) {
-	double move_dist_cnts;
-	bool moveIsAbsolute = true;
-	std::cout << "Type a distance in counts:";
-	std::cin >> move_dist_cnts;
-	if (rMode) {
-		printf("Simulating movement.\n");
-		return std::vector<double> {move_dist_cnts, move_dist_cnts};
+bool moveIsDone(class IPort&myPort) {
+	// Checks if all movement is completed on all axes.
+	// If any axis is not done moving, return false.
+	for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
+		if (!myPort.Nodes(iNode).Motion.MoveIsDone()) { return false; }
 	}
-	else {
-		Node1.Motion.MovePosnStart(move_dist_cnts, moveIsAbsolute);			//execute encoder count move 
-		Node2.Motion.MovePosnStart(-move_dist_cnts, moveIsAbsolute);			//execute encoder count move 
-
-		double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //mymgr->timestampmsec() + thenode.motion.moveposndurationmsec(move_distance_cnts) + 100;			//define a timeout in case the node is unable to enable
-
-
-		while (!Node1.Motion.MoveIsDone()){// || !Node2.Motion.MoveIsDone()) {
-			if (myMgr->TimeStampMsec() > timeout) {
-				printf("error: timed out waiting for move to complete\n");
-				msgUser("press any key to continue."); //pause so the user can see the error message; waits for user to press a key
-				/*return*/;
-			}
-		}
-		myMgr->Delay(DELAY);
-		//std::vector<int> 
-		return std::vector<double> {(double)Node1.Motion.PosnMeasured};//, (double)Node2.Motion.PosnMeasured};
-		//printf("Node 0: %.1f, Node 1: %.1f\n", (double)Node1.Motion.PosnMeasured, (double)Node2.Motion.PosnMeasured);
-	}
+	return true;
 }
 
-std::vector<double> jogPosn(class INode& Node1, class INode& Node2, SysManager* myMgr, bool rMode, std::vector<double> posn) {
-	double move_dist_cnts;
-	std::cout << "Type a jog distance in counts:";
-	std::cin >> move_dist_cnts;
-
-	if (rMode) {
-		printf("Simulating movement.\n");
-		return std::vector<double> {posn[0]+move_dist_cnts, posn[1]+move_dist_cnts};
+vector<double> measurePosn(class IPort& myPort) {
+	// Measrues position on all nodes.
+	// Will eventually include a counts=>distance mapping for each individual node.
+	// Will eventually discard slave nodes, to only display axis dimensions.
+	// Returns a double vector of position.
+	vector<double> position;
+	for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
+		//if (!isSlaveNode) {
+		// add count-mm conversion
+		position.push_back(myPort.Nodes(iNode).Motion.PosnMeasured);
+		//}
 	}
-	else {
-		Node1.Motion.MovePosnStart(move_dist_cnts, false);			//execute encoder count move 
-		//Node2.Motion.MovePosnStart(-move_dist_cnts, false);			//execute encoder count move 
-
-		double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //mymgr->timestampmsec() + thenode.motion.moveposndurationmsec(move_distance_cnts) + 100;			//define a timeout in case the node is unable to enable
-
-
-		while (!Node1.Motion.MoveIsDone()){// || !Node2.Motion.MoveIsDone()) {
-			if (myMgr->TimeStampMsec() > timeout) {
-				printf("error: timed out waiting for move to complete\n");
-				msgUser("press any key to continue."); //pause so the user can see the error message; waits for user to press a key
-				/*return*/;
-			}
-		}
-		myMgr->Delay(DELAY);
-		//std::vector<int> 
-		return std::vector<double> {(double)Node1.Motion.PosnMeasured};//, (double)Node2.Motion.PosnMeasured};
-		//printf("Node 0: %.1f, Node 1: %.1f\n", (double)Node1.Motion.PosnMeasured, (double)Node2.Motion.PosnMeasured);
-	}
+	return position;
 }
 
-void posnPrint(std::vector <double> const& a) {
-	std::cout << "The current position is : (";
+void vectorPrint(vector <double> const& a, string comment) {
+	//Prints a vector with a given in
+	cout << comment <<"(";
 
 	for (int i = 0; i < a.size(); i++)
-		std::cout << a.at(i) << ',' << " ";
-	std::cout << "\b\b)\n";
+		cout << a.at(i) << ',' << " ";
+	cout << "\b\b)\n";
 }
 
+vector<double> changePosn(class IPort&myPort, SysManager* myMgr, bool rMode, bool targetIsAbsolute, vector<double> currentPosn) {
+	// Expands the motion.moveposnstart command into an arbitrary number of nodes/axes and waits for all to finish.
+
+	
+	// CHANGE INPUT TO STRING
+	double move_dist_cnts;
+	cout << "Type a distance in counts for changeposnt:";
+	cin >> move_dist_cnts;
+	
+	// PARSE STRING INPUT INTO VECTOR
+	// CHECK VECTOR LENGTH AGAINST NUMBER OF NODES - NUMBER OF SLAVE NODES
+	
+	vector<double> endPosn;// = currentPosn;
+
+	if (rMode) {
+		printf("Simulating movement.\n");
+		endPosn = { move_dist_cnts };
+	}
+	else {
+		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
+			// MAP INPUT DISTANCE TO COUNTS FOR EACH AXIS
+			myPort.Nodes(iNode).Motion.MovePosnStart(move_dist_cnts, targetIsAbsolute);
+		}
+		
+		double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //define a timeout in case the node is unable to enable
+		while (!moveIsDone(myPort)) {
+			if (myMgr->TimeStampMsec() > timeout) {
+				printf("error: timed out waiting for move to complete\n");
+				msgUser("press any key to continue."); //pause so the user can see the error message; waits for user to press a key
+				//return;
+			}
+		}
+		myMgr->Delay(SHORT_DELAY);
+		endPosn = measurePosn(myPort);
+	}
+	return endPosn;
+}
+
+//IPort&myPort = initializePort(class lorem, ipsum)
+
 int commandLineControl(class IPort& myPort, SysManager* myMgr, bool rMode) {
-	// Initialize variables for use in 
+	// Initialize variables for use in remote mode
 	INode& Node1 = myPort.Nodes(0);
 	INode& Node2 = myPort.Nodes(1);
 
@@ -116,9 +123,7 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool rMode) {
 
 			myMgr->Delay(200);
 
-
 			//theNode.Setup.ConfigLoad("Config File path");
-
 
 			printf("   Node[%d]: type=%d\n", int(iNode), theNode.Info.NodeType());
 			printf("            userID: %s\n", theNode.Info.UserID.Value());
@@ -174,92 +179,79 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool rMode) {
 			}
 
 		}
-
-		///////////////////////////////////////////////////////////////////////////////////////
-		//At this point we will create the node shortcuts and set their parameters.
-		//////////////////////////////////////////////////////////////////////////////////////
 		
-		//INode& Node1 = myPort.Nodes(0);
-		//INode& Node2 = myPort.Nodes(1);
 		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
-			//std::cout << iNode;
+			//cout << iNode;
 			myPort.Nodes(iNode).AccUnit(INode::RPM_PER_SEC);
 			myPort.Nodes(iNode).VelUnit(INode::RPM);
 			myPort.Nodes(iNode).Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
 			myPort.Nodes(iNode).Motion.VelLimit = VEL_LIM_RPM;
+			myPort.Nodes(iNode).Motion.PosnMeasured.AutoRefresh(true);
 		}
-		//Node1.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
-		//Node2.AccUnit(INode::RPM_PER_SEC);				//Set the units for Acceleration to RPM/SEC
 
-		//Node1.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
-		//Node2.VelUnit(INode::RPM);						//Set the units for Velocity to RPM
-
-		//Node1.Motion.PosnMeasured.AutoRefresh(true);
-		//Node2.Motion.PosnMeasured.AutoRefresh(true);
-
-		//Node1.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
-		//Node2.Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
-
-		//Node1.Motion.VelLimit = VEL_LIM_RPM;
-		//Node2.Motion.VelLimit = VEL_LIM_RPM;
 		printf("Moving Nodes...Current Positions: \n");
 	}	
 	
 	bool quit = false;
 	int command;
-	std::vector<double> posn;
+	vector<double> posn;
 	if (rMode) { posn = { 0,0 }; }
 	double velocity_limit = VEL_LIM_RPM;
 	while (!quit) {
 
-		std::cin.clear();
+		cin.clear();
 		command = 0;
-		printf("Current velocity limit (RPM): %d\n", velocity_limit);
-		std::cout << "Please input an operation number.\n";
-		std::cout << "1: Set Position\n2: Jog Position\n3: Change Velocity Limit\n4: Quit\n";
-		std::cin >> command;
+		cout << "Current velocity limit (RPM): " << velocity_limit;
+		cout << "\nPlease input an operation number.\n";
+		cout << "1: Change Position\n2: Jog Position\n3: Change Velocity Limit\n4: Quit\n";
+		cin >> command;
 
-		if (std::cin.fail()) {
-			std::cout << "That is not a valid command.\n";
-			std::cin.clear();
-			std::cin.ignore(100, '\n');
+		if (cin.fail()) {
+			cout << "That is not a valid command.\n";
+			cin.clear();
+			cin.ignore(100, '\n');
 			continue;
 		}
 		switch (command)
 		{
 		case 1:
-			posn = setPosn(Node1, Node2, myMgr, rMode);
-			posnPrint(posn);
+			posn = changePosn(myPort, myMgr, rMode, true, posn);
+			vectorPrint(posn, "The current position is : ");
 			break;
 		case 2:
-			posn = jogPosn(Node1, Node2, myMgr, rMode, posn);
-			posnPrint(posn);
+			posn = changePosn(myPort, myMgr, rMode, false, posn);
+			vectorPrint(posn, "The current position is : ");
 			break;
 		case 3:
-			std::cout << "Please enter a new velocity in RPM:";
-			std::cin >> velocity_limit;
+			cout << "Please enter a new velocity in RPM:";
+			cin >> velocity_limit;
+			if (velocity_limit > MAX_VEL_LIM) {
+				cout << "Input velocity limit is greater than defined maximum limit. Please try again with a lesser value.\n";
+				break;
+			}
 			for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
-				myPort.Nodes(iNode).Motion.VelLimit = VEL_LIM_RPM;
+				myPort.Nodes(iNode).Motion.VelLimit = velocity_limit;
 			}
 			break;
 		case 4:
-			std::cout << "Closing program.";
+			cout << "Closing program.";
 			quit = true;
 			break;
 		default:
-			std::cout << "That is not a valid command.\n";
+			cout << "That is not a valid command.\n";
 		}
 	}
 	return 0;
 }
 
 
+
 int main(int argc, char* argv[])
 {
 	msgUser("Motion Example starting. Press Enter to continue.");
 
-size_t portCount = 0;
-	std::vector<std::string> comHubPorts;
+	size_t portCount = 0;
+	vector<string> comHubPorts;
 
 
 	//Create the SysManager object. This object will coordinate actions among various ports
@@ -286,8 +278,8 @@ size_t portCount = 0;
 			// If there is no hub, either quit the program or enable remote work mode.
 			printf("Unable to locate SC hub port, enable remote mode?\n");
 			char rModeChar;
-			std::cout << "y/n?:";
-			std::cin >> rModeChar; //y/n input 
+			cout << "y/n?:";
+			cin >> rModeChar; //y/n input 
 			if (rModeChar == 'y' || rModeChar == 'Y') {
 				rMode = 1;
 				printf("Remote Work Mode Enabled\n");
