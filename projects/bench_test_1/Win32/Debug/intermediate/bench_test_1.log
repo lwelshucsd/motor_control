@@ -1,9 +1,27 @@
 ﻿  bench_test_1.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(62,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(88,45): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(57,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(66,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(190,65): warning C4244: 'argument': conversion from '_Ty' to 'int32_t', possible loss of data
+          with
+          [
+              _Ty=double
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\valarray(423,13): warning C4804: '+=': unsafe use of type 'bool' in operation
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\valarray(419): message : while compiling class template member function '_Ty std::valarray<_Ty>::sum(void) const'
+          with
+          [
+              _Ty=bool
+          ]
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(48): message : see reference to function template instantiation '_Ty std::valarray<_Ty>::sum(void) const' being compiled
+          with
+          [
+              _Ty=bool
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\valarray(1532): message : see reference to class template instantiation 'std::valarray<bool>' being compiled
   Copying sFoundation Files
   cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\"
           1 file(s) copied.
           1 file(s) copied.
           1 file(s) copied.
+     Creating library C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.lib and object C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exp
   bench_test_1.vcxproj -> C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exe
