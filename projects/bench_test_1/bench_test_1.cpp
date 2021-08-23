@@ -25,8 +25,8 @@ char msgUser(const char *msg) {
 //This program will assume all configuration files are preloaded on the motor.
 //*********************************************************************************
 
-#define ACC_LIM_RPM_PER_SEC	50000
-#define VEL_LIM_RPM			180
+#define ACC_LIM_CNTS_PER_SEC2	320000000
+#define VEL_LIM_CNTS_PER_SEC	64000
 #define MAX_VEL_LIM			1000
 #define LONG_DELAY			500
 #define SHORT_DELAY			100
@@ -36,11 +36,13 @@ char msgUser(const char *msg) {
 // Global Variables for later use
 valarray<double> current_pos;
 
-// Find a way to replace this section so that it is not hardcoded
+//// Find a way to replace this section so that it is not hardcoded
 // Configuration specific mapping variables
 valarray<bool>		is_follower_node	= { 0, 0 };	// denotes whether the node is a leader or follower node
 valarray<double>	node_sign		= { -1, 1 };	// denotes the direction that we consider positive relative to the node's positive
 valarray<double>	lead			= { 60, 20 };	// spatial change (mm) per roation of the node shaft
+valarray<double>	is_rotary_axis	= { 0, 0 };
+valarray<double>	node_2_axis = { 0, 0 };
 //valarray<bool>		is_follower_node	= { 0, 0, 1, 0 };
 //valarray<double>	node_sign		= { -1, 1, 1, 1 };
 //valarray<double>	lead			= { 60, 60, 60, 8 };
@@ -107,7 +109,6 @@ bool moveIsDone(class IPort&myPort) {
 	// Checks if all movement is completed on all axes.
 	// If any axis is not done moving, return false.
 	for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
-		//cout << "\nnode " << iNode << ":     " << myPort.Nodes(iNode).Motion.MoveIsDone();
 		if (!myPort.Nodes(iNode).Motion.MoveIsDone()) { return false; }
 	}
 	return true;
@@ -115,13 +116,10 @@ bool moveIsDone(class IPort&myPort) {
 
 valarray<double> measurePosn(class IPort& myPort) {
 	// Measrues position on all nodes.
-	// Will eventually include a counts=>distance mapping for each individual node.
-	// Will eventually discard follower nodes, to only display axis dimensions.
-	// Returns a double vector of position.
-	// 
+	// Will eventually discard follower nodes, to only display leader axis dimensions.
+	// Returns a double valarray of position.
 
-	//int num_dims = myPort.NodeCount() - sum(isfollowerNode(map))
-	//int num_dims = 3;
+
 	valarray<double> position (num_axes);
 	int dim_ind = 0;
 	for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
@@ -130,7 +128,7 @@ valarray<double> measurePosn(class IPort& myPort) {
 		}
 		dim_ind += 1;
 	}
-	position *= lead_per_cnt;// *= node_sign;
+	position *= lead_per_cnt;
 	return position;
 }
 
@@ -155,6 +153,7 @@ valarray<double> changePosn(class IPort&myPort, SysManager* myMgr, bool r_mode, 
 		}
 	}
 
+
 	// Compute direciton of movement
 	if (target_is_absolute) {
 		dir_vec = input_vec - current_pos;
@@ -172,7 +171,6 @@ valarray<double> changePosn(class IPort&myPort, SysManager* myMgr, bool r_mode, 
 		myPort.Nodes(iNode).Motion.VelLimit = abs(dir_vec[iNode]);
 	}
 
-
 	//convert input vector to counts
 	valarray<double> input_vec_cnts = input_vec / lead_per_cnt;
 	input_vec_cnts *= node_sign; // reverse required nodes
@@ -186,9 +184,13 @@ valarray<double> changePosn(class IPort&myPort, SysManager* myMgr, bool r_mode, 
 		end_pos = current_pos*(!target_is_absolute) + input_vec;
 	}
 	else {
+		double start = myMgr->TimeStampMsec();
+
 		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
-			myPort.Nodes(iNode).Motion.MovePosnStart(input_vec_cnts[iNode], target_is_absolute);
+			myPort.Nodes(iNode).Motion.Adv.TriggerGroup(1);
+			myPort.Nodes(iNode).Motion.Adv.MovePosnStart(input_vec_cnts[iNode], target_is_absolute,true);
 		}
+		myPort.Nodes(0).Motion.Adv.TriggerMovesInMyGroup();
 
 		double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //define a timeout in case the node is unable to enable
 		while (!moveIsDone(myPort)) {
@@ -198,6 +200,7 @@ valarray<double> changePosn(class IPort&myPort, SysManager* myMgr, bool r_mode, 
 				return measurePosn(myPort);
 			}
 		}
+		cout << "\nCompleted: " << myMgr->TimeStampMsec()-start;
 		myMgr->Delay(SHORT_DELAY);
 		end_pos = measurePosn(myPort);
 	}
@@ -290,11 +293,10 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool r_mode) {
 		}
 		
 		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
-			//cout << iNode;
-			myPort.Nodes(iNode).AccUnit(INode::RPM_PER_SEC);
+			myPort.Nodes(iNode).AccUnit(INode::COUNTS_PER_SEC2);
 			myPort.Nodes(iNode).VelUnit(INode::COUNTS_PER_SEC);
-			myPort.Nodes(iNode).Motion.AccLimit = ACC_LIM_RPM_PER_SEC;
-			myPort.Nodes(iNode).Motion.VelLimit = VEL_LIM_RPM;
+			myPort.Nodes(iNode).Motion.AccLimit = ACC_LIM_CNTS_PER_SEC2;
+			myPort.Nodes(iNode).Motion.VelLimit = VEL_LIM_CNTS_PER_SEC;
 			myPort.Nodes(iNode).Motion.PosnMeasured.AutoRefresh(true);
 		}
 
@@ -315,15 +317,14 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool r_mode) {
 		//print out the config
 		cout << "If configuration is incorrect, please quit the program and fix mappings in code";
 		current_pos = measurePosn(myPort);
-		valarrayPrint(current_pos, "\n");
 	}
 
-	//double velocity_limit = VEL_LIM_RPM;
 	while (!quit) {
 
 		cin.clear();
 		command = 0;
-		cout << "\n\nCurrent velocity limit (mm/s): " << velocity_limit;
+		valarrayPrint(measurePosn(myPort) * node_sign, "\nThe current position is : ");
+		cout << "\nCurrent velocity limit (mm/s): " << velocity_limit;
 		cout << "\nPlease input an operation number.\n";
 		cout << "1: Change Position\n2: Jog Position\n3: Change Velocity Limit\n4: Quit\n";
 		cin >> command;
@@ -338,11 +339,9 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool r_mode) {
 		{
 		case 1:
 			current_pos = changePosn(myPort, myMgr, r_mode, true);
-			valarrayPrint(current_pos *= node_sign, "The current position is : ");
 			break;
 		case 2:
 			current_pos = changePosn(myPort, myMgr, r_mode, false);
-			valarrayPrint(current_pos *= node_sign, "The current position is : ");
 			break;
 		case 3:
 			cout << "Please enter a new velocity in mm/s:";
@@ -352,10 +351,6 @@ int commandLineControl(class IPort& myPort, SysManager* myMgr, bool r_mode) {
 				velocity_limit = MAX_VEL_LIM;
 				break;
 			}
-			// remove this later for new velocity in mm/s
-			//for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
-			//	myPort.Nodes(iNode).Motion.VelLimit = velocity_limit;
-			//}
 			break;
 		case 4:
 			cout << "Closing program.";
