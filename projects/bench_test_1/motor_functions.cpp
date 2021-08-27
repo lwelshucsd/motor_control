@@ -14,6 +14,9 @@
 
 /*----------------------------- Include Files ------------------------------*/
 #include "motor_functions.hpp"
+#include "general_functions.hpp"
+#include <Windows.h>
+#include <iostream>
 
 #define LONG_DELAY				500
 #define SHORT_DELAY				100
@@ -23,11 +26,7 @@
 #define MAX_VEL_LIM				2000
 
 using namespace sFnd;
-using std::vector;
-using std::cin;
-using std::cout;
-using std::string;
-using std::valarray;
+
 /*--------------------------- External Variables ---------------------------*/
 /*----------------------------- Module Defines -----------------------------*/
 /*------------------------------ Module Types ------------------------------*/
@@ -54,16 +53,16 @@ void machine::loadConfig() {
 	config.lead_per_cnt = config.lead | (1 / double(6400));
 }
 
-vector<double> machine::measurePosn() {
+std::vector<double> machine::measurePosn() {
 	// Measrues position on all nodes.
 	// Will eventually discard follower nodes, to only display leader axis dimensions.
 	// Returns a double vector of position.
 	IPort& myPort = myMgr->Ports(0);
 	int num_axes = config.num_axes;
-	vector<double> is_follower_node = config.is_follower_node;
-	vector<double> lead_per_cnt = config.lead_per_cnt;
+	std::vector<double> is_follower_node = config.is_follower_node;
+	std::vector<double> lead_per_cnt = config.lead_per_cnt;
 
-	vector<double> position(num_axes);
+	std::vector<double> position(num_axes);
 
 	int dim_ind = 0;
 	for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
@@ -77,31 +76,31 @@ vector<double> machine::measurePosn() {
 }
 
 //change name to "linear"
-vector<double> machine::linearMove(bool r_mode, bool target_is_absolute) {
+std::vector<double> machine::linearMove(bool r_mode, bool target_is_absolute) {
 	// Expands the motion.moveposnstart command into an arbitrary number of nodes/axes and waits for all to finish.
 	IPort& myPort = myMgr->Ports(0);
-	vector<double> end_pos;
-	vector<double> dir_vec;
-	vector<double> input_vec;
-	vector<double> current_pos = machine::measurePosn();
+	std::vector<double> end_pos;
+	std::vector<double> dir_vec;
+	std::vector<double> input_vec;
+	std::vector<double> current_pos = machine::measurePosn();
 
 	int num_axes = config.num_axes;
 	double velocity_limit = config.velocity_limit;
-	vector<double> is_follower_node = config.is_follower_node;
-	vector<double> lead_per_cnt = config.lead_per_cnt;
-	vector<double> node_sign = config.node_sign;
+	std::vector<double> is_follower_node = config.is_follower_node;
+	std::vector<double> lead_per_cnt = config.lead_per_cnt;
+	std::vector<double> node_sign = config.node_sign;
 
-	string move_dist_str;
+	std::string move_dist_str;
 	while (true) {
-		cout << "Type a distance/position in mm, using commas to separate axes:";
-		cin >> move_dist_str;
+		std::cout << "Type a distance/position in mm, using commas to separate axes:";
+		std::cin >> move_dist_str;
 		input_vec = parseString(move_dist_str, ',');
 		if (input_vec.size() == num_axes) {
 			break;
 		}
 		else {
-			cout << "\nSize of input vector does not match the number of axes in the system: " << num_axes;
-			cout << "\nPlease try again.";
+			std::cout << "\nSize of input vector does not match the number of axes in the system: " << num_axes;
+			std::cout << "\nPlease try again.";
 		}
 	}
 
@@ -122,13 +121,13 @@ vector<double> machine::linearMove(bool r_mode, bool target_is_absolute) {
 		myPort.Nodes(iNode).Motion.VelLimit = abs(dir_vec[iNode]);
 	}
 	//convert input vector to counts
-	vector<double> input_vec_cnts = input_vec / lead_per_cnt;
+	std::vector<double> input_vec_cnts = input_vec / lead_per_cnt;
 	input_vec_cnts = input_vec_cnts * node_sign; // reverse required nodes
 	if (r_mode) {
 		printf("Simulating movement.\n");
 		Sleep(SHORT_DELAY);							// Update to incorporate speed and calculate simulated time
 		vectorPrint(current_pos, " ");
-		cout << "\n";
+		std::cout << "\n";
 		vectorPrint(input_vec, " ");
 		end_pos = (current_pos | (!target_is_absolute)) + input_vec;
 	}
@@ -155,6 +154,8 @@ vector<double> machine::linearMove(bool r_mode, bool target_is_absolute) {
 
 int machine::enableNodes() {
 	IPort& myPort = myMgr->Ports(0);
+	printf("\n===== Detected Node Data =====\n");
+	printf("        Type || FW Version || Serial # || Model\n");
 	for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
 		// Create a shortcut reference for a node
 		INode& theNode = myPort.Nodes(iNode);
@@ -164,20 +165,20 @@ int machine::enableNodes() {
 		myMgr->Delay(200);
 
 		//theNode.Setup.ConfigLoad("Config File path");
-
-		printf("	 Node[%d]: type=%d\n", int(iNode), theNode.Info.NodeType());
-		printf("            userID: %s\n", theNode.Info.UserID.Value());
-		printf("        FW version: %s\n", theNode.Info.FirmwareVersion.Value());
-		printf("          Serial #: %d\n", theNode.Info.SerialNumber.Value());
-		printf("             Model: %s\n", theNode.Info.Model.Value());
-
+		printf(
+			"Node[%d]:  %d  || %s || %d || %s\n",
+			int(iNode), theNode.Info.NodeType(),
+			theNode.Info.FirmwareVersion.Value(),
+			theNode.Info.SerialNumber.Value(),
+			theNode.Info.Model.Value()
+		);
 		//The following statements will attempt to enable the node.  First,
 		// any shutdowns or NodeStops are cleared, finally the node is enabled
 		theNode.Status.AlertsClear();					//Clear Alerts on node 
 		theNode.Motion.NodeStopClear();	//Clear Nodestops on Node  				
 		theNode.EnableReq(true);					//Enable node 
 		//At this point the node is enabled
-		printf("Node \t%zi enabled\n", iNode);
+		//printf("Node[%d] enabled.\n", int(iNode));
 		double timeout = myMgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
 																	//This will loop checking on the Real time values of the node's Ready status
 		while (!theNode.Motion.IsReady()) {
@@ -188,21 +189,26 @@ int machine::enableNodes() {
 			}
 		}
 	}
+	printf("\n===== User Node IDs =====\n");
+	for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
+		printf("Node[%d]: %s\n", int(iNode), myPort.Nodes(iNode).Info.UserID.Value());
+	}
 	return 1;
 }
 
-vector<double> machine::homePosn() {
+std::vector<double> machine::homePosn() {
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	//	//	NEED TO CHANGE HOMING OPERATION TO HOME LEADER-FOLLOWER SETS TOGETHER
 	//	//	OR TO HOME ALL NODES AT THE SAME TIME, BASICALLY AS A MOVE TO ORIGIN
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
+	printf("\n===== Homing All Axes =====\n");
 	try {
 		IPort& myPort = myMgr->Ports(0);
 		int num_axes = config.num_axes;
-		vector<double> is_follower_node = config.is_follower_node;
-		vector<double> node_2_axis = config.node_2_axis;
+		std::vector<double> is_follower_node = config.is_follower_node;
+		std::vector<double> node_2_axis = config.node_2_axis;
 		for (size_t iAxis = 0; iAxis < num_axes; iAxis++) {
 			for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
 				if (node_2_axis[iNode] == iAxis) {
@@ -211,8 +217,8 @@ vector<double> machine::homePosn() {
 					{
 						if (theNode.Motion.Homing.WasHomed())
 						{
-							printf("Node %d has already been homed, current position is: \t%8.0f \n", iNode, theNode.Motion.PosnMeasured.Value());
-							printf("Rehoming Node... \n");
+							printf("Node[%d] has already been homed, current position is: \t%8.0f \n", iNode, theNode.Motion.PosnMeasured.Value());
+							printf("Rehoming Node[%d]... \n", iNode);
 						}
 						else
 						{
@@ -231,7 +237,7 @@ vector<double> machine::homePosn() {
 								std::exit(1);
 							}
 						}
-						printf("Node completed homing\n");
+						printf("Node[%d] completed homing\n", iNode);
 					}
 					else {
 						printf("Node[%d] has not had homing setup through ClearView.  The node will not be homed.\n", iNode);
@@ -270,7 +276,7 @@ int machine::setConfig() {
 void machine::disableNodes() {
 	try {
 		IPort& myPort = myMgr->Ports(0);
-		printf("Disabling nodes, and closing port\n");
+		printf("\nDisabling nodes\n");
 		for (size_t iNode = 0; iNode < myPort.NodeCount(); iNode++) {
 			// Create a shortcut reference for a node
 			myPort.Nodes(iNode).EnableReq(false);
@@ -290,7 +296,7 @@ void machine::disableNodes() {
 
 int machine::openPorts() {
 	size_t port_count = 0;
-	vector<string> comHubPorts;
+	std::vector<std::string> comHubPorts;
 
 
 	//Create the SysManager object. This object will coordinate actions among various ports
@@ -355,6 +361,7 @@ int machine::openPorts() {
 }
 
 void machine::closePorts() {
+	printf("Closing Ports\n");
 	myMgr->PortsClose();
 }
 
@@ -368,8 +375,8 @@ bool machine::startUp() {
 		// If there is no hub, either quit the program or enable remote work mode.
 		printf("Unable to locate SC hub port, enable remote mode?\n");
 		char r_modeChar;
-		cout << "y/n?:";
-		cin >> r_modeChar; //y/n input
+		std::cout << "y/n?:";
+		std::cin >> r_modeChar; //y/n input
 		if (r_modeChar == 'y' || r_modeChar == 'Y') {
 			r_mode = 1;
 			printf("Remote Work Mode Enabled\n");

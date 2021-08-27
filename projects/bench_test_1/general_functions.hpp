@@ -14,12 +14,10 @@
 #ifndef GENERAL_FUNCTIONS_HPP_
 #define GENERAL_FUNCTIONS_HPP_
 /*----------------------------- Include Files ------------------------------*/
-#include <stdio.h>	
-#include <string>
-#include <iostream>
-#include <Windows.h>
-#include <vector>
 
+#include "pubSysCls.h"	
+#include <string>
+#include <vector>
 
 
 /*-------------------------------- Defines ---------------------------------*/

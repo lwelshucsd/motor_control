@@ -14,42 +14,28 @@
 #ifndef MOTOR_FUNCTIONS_HPP_
 #define MOTOR_FUNCTIONS_HPP_
 /*----------------------------- Include Files ------------------------------*/
-#include <stdio.h>	
-#include <string>
-#include <math.h>
-#include <iostream>
-#include <Windows.h>
-#include <valarray>
+#include "pubSysCls.h"	
 #include <vector>
-#include "pubSysCls.h"
 #include "vector_operators.hpp"
-#include "general_functions.hpp"
 
-
-using namespace sFnd;
-using std::valarray;
-using std::vector;
-using std::cin;
-using std::cout;
-using std::string;
 /*-------------------------------- Defines ---------------------------------*/
 
 /*--------------------------------- Types ----------------------------------*/
 struct mConfig
 {
-	vector<double> is_follower_node;
-	vector<double> node_sign;
-	vector<double> lead;
-	vector<double> is_rotary_axis;
-	vector<double> lead_per_cnt;
-	vector<double> node_2_axis;
+	std::vector<double> is_follower_node;
+	std::vector<double> node_sign;
+	std::vector<double> lead;
+	std::vector<double> is_rotary_axis;
+	std::vector<double> lead_per_cnt;
+	std::vector<double> node_2_axis;
 	double velocity_limit;
 	double num_axes = is_rotary_axis.size();
 };
 
 class machine {
 private:
-	SysManager* myMgr;
+	sFnd::SysManager* myMgr;
 	void loadConfig();
 	int openPorts();
 	int enableNodes();
@@ -58,12 +44,12 @@ private:
 	void closePorts();
 	//IPort& myPort;
 public:
-	vector<double> current_pos;
+	std::vector<double> current_pos;
 	mConfig config;
 	void setSpeed();
-	vector<double> homePosn();
-	vector<double> measurePosn();
-	vector<double> linearMove(bool r_mode, bool target_is_absolut);
+	std::vector<double> homePosn();
+	std::vector<double> measurePosn();
+	std::vector<double> linearMove(bool r_mode, bool target_is_absolut);
 	bool startUp();
 	void shutDown();
 };

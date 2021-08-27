@@ -1,16 +1,4 @@
-﻿  bench_test_1.cpp
-  motor_functions.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(62,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(88,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(138,69): warning C4244: 'argument': conversion from '_Ty' to 'int32_t', possible loss of data
-          with
-          [
-              _Ty=double
-          ]
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(203,16): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(206,32): warning C4018: '<': signed/unsigned mismatch
-  Generating Code...
-  Copying sFoundation Files
+﻿  Copying sFoundation Files
   cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\"
           1 file(s) copied.
           1 file(s) copied.

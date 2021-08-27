@@ -1,20 +1,12 @@
 //Required include files
-#include <stdio.h>	
-#include <string>
-#include <math.h>
 #include <iostream>
-#include "pubSysCls.h"	
 #include <Windows.h>
-#include <vector>
 #include "general_functions.hpp"
-#include "vector_operators.hpp"
 #include "motor_functions.hpp"
 
 using namespace sFnd;
-using std::vector;
 using std::cin;
 using std::cout;
-using std::string;
 
 
 //*********************************************************************************
@@ -35,9 +27,15 @@ int commandLineControl(machine myMachine, bool r_mode) {
 		command = 0;
 
 		vectorPrint(myMachine.measurePosn() * myMachine.config.node_sign, "\nThe current position is : ");
-		cout << "\nCurrent velocity limit (mm/s): " << myMachine.config.velocity_limit;
-		cout << "\nPlease input an operation number.\n";
-		cout << "1: Change Position\n2: Jog Position\n3: Change Velocity Limit\n4: Quit\n";
+		printf("Current velocity limit: %0.2f mm/s\n", myMachine.config.velocity_limit);
+		cout << "Please input an operation number.\n";
+		cout << "0: Quit\n";
+		cout << "1: Change Position\n";
+		cout << "2: Linear Jog\n";
+		cout << "3: Change Velocity Limit\n";
+		//cout << "4: Preset toolpaths\n";
+		//cout << "5: Machine Info\n";
+		//cout << "N: OPERATION\n";
 		cin >> command;
 
 		if (cin.fail()) {
@@ -48,6 +46,9 @@ int commandLineControl(machine myMachine, bool r_mode) {
 		}
 		switch (command)
 		{
+		case 0:
+			quit = true;
+			break;
 		case 1:
 			myMachine.current_pos = myMachine.linearMove(r_mode, true);
 			break;
@@ -63,13 +64,10 @@ int commandLineControl(machine myMachine, bool r_mode) {
 				break;
 			}
 			break;
-		case 4:
-			cout << "Closing program.";
-			quit = true;
-			break;
 		default:
 			cout << "That is not a valid command.\n";
 		}
+
 		Sleep(2 * SHORT_DELAY);
 	}
 	return 0;
@@ -101,9 +99,11 @@ int main(int argc, char* argv[])
 		msgUser("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 		return 0;  //This terminates the main program
 	}
-	
+
 	//Disable the nodes and close the port
 	myMachine.shutDown();
-
+	cout << "Closing program.\n";
+	msgUser("Press any key to continue.");
+	msgUser("");
 	return 0;			//End program
 }

@@ -14,16 +14,9 @@
 #ifndef VECTOR_OPERATORS_HPP_
 #define VECTOR_OPERATORS_HPP_
 /*----------------------------- Include Files ------------------------------*/
-//#include <stdio.h>	
-//#include <string>
-#include <math.h>
-#include <iostream>
-#include <Windows.h>
-#include <valarray>
 #include <vector>
-#include <algorithm>
-#include <functional>
-#include <numeric>
+
+
 
 /*-------------------------------- Defines ---------------------------------*/
 

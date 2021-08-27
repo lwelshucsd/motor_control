@@ -14,14 +14,11 @@
 
 /*----------------------------- Include Files ------------------------------*/
 #include "vector_operators.hpp"
-#include <math.h>
-#include <Windows.h>
-#include <valarray>
+#include <iostream>
 #include <algorithm>
 #include <functional>
-#include <cassert>
 #include <numeric>
-#include "general_functions.hpp"
+#include <cassert>
 
 /*--------------------------- External Variables ---------------------------*/
 /*----------------------------- Module Defines -----------------------------*/
