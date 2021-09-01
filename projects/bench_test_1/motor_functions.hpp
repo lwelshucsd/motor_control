@@ -21,36 +21,38 @@
 /*-------------------------------- Defines ---------------------------------*/
 
 /*--------------------------------- Types ----------------------------------*/
-struct mConfig
-{
-	std::vector<double> is_follower_node;
-	std::vector<double> node_sign;
-	std::vector<double> lead;
-	std::vector<double> is_rotary_axis;
-	std::vector<double> lead_per_cnt;
-	std::vector<double> node_2_axis;
-	double velocity_limit;
-	double num_axes = is_rotary_axis.size();
-};
 
 class machine {
 private:
 	sFnd::SysManager* myMgr;
-	void loadConfig();
+	void loadConfig(char delimiter);
 	int openPorts();
 	int enableNodes();
-	void disableNodes();
+	int disableNodes();
 	int setConfig();
 	void closePorts();
-	//IPort& myPort;
 public:
+	struct mechConfig
+	{
+		std::vector<double> is_follower_node;
+		std::vector<double> node_sign;
+		std::vector<double> lead;
+		std::vector<double> is_rotary_axis;
+		std::vector<double> lead_per_cnt;
+		std::vector<double> parent_axis;
+		double velocity_limit;
+		double max_velocity_limit;
+		double num_axes = is_rotary_axis.size();
+	} config;
+	struct machineSettings {
+		bool r_mode = false;
+	} settings;
 	std::vector<double> current_pos;
-	mConfig config;
 	void setSpeed();
-	std::vector<double> homePosn();
+	int homePosn();
 	std::vector<double> measurePosn();
-	std::vector<double> linearMove(bool r_mode, bool target_is_absolut);
-	bool startUp();
+	std::vector<double> linearMove(std::vector<double> input_vec, bool target_is_absolut);
+	int startUp();
 	void shutDown();
 };
 

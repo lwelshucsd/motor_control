@@ -3,11 +3,16 @@
   <ItemGroup>
     <ClCompile Include="bench_test_1.cpp" />
     <ClCompile Include="vector_operators.cpp" />
+    <ClCompile Include="general_functions.cpp" />
+    <ClCompile Include="motor_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />
+    <Text Include="mech_config.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vector_operators.hpp" />
+    <ClInclude Include="general_functions.hpp" />
+    <ClInclude Include="motor_functions.hpp" />
   </ItemGroup>
 </Project>

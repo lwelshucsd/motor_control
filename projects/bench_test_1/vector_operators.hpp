@@ -36,6 +36,7 @@ std::vector<double> operator^(const std::vector<double>& a, double b);
 std::vector<double> operator&(const std::vector<double>& a, double b);
 std::vector<double> operator|(const std::vector<double>& a, double b);
 double vsum(std::vector<double> a);
-double norm(std::vector<double> a);
+//double norm(std::vector<double> a);
+std::vector<double> normalize(std::vector<double> a);
 /*------------------------------ End of file -------------------------------*/
 #endif /* VECTOR_OPERATORS_HPP_ */

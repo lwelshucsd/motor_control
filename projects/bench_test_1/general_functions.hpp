@@ -30,7 +30,8 @@
 // IO Functions
 char msgUser(const char* msg);
 void vectorPrint(std::vector<double> const& a, std::string comment);
-std::vector<double> parseString(std::string input, char delimiter);
+//std::vector<double> parseString(std::string input, char delimiter);
+std::vector<double> userVectorInput(std::string prompt, int expected_size);
 
 /*------------------------------ End of file -------------------------------*/
 #endif /* MOTOR_FUNCTIONS_HPP_ */

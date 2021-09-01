@@ -13,36 +13,53 @@ using std::cout;
 //This program will assume configuration files are preloaded on the motor.
 //*********************************************************************************
 
-#define MAX_VEL_LIM				2000		//mm/s
 #define SHORT_DELAY				100
 
 
-int commandLineControl(machine myMachine, bool r_mode) {
+int commandLineControl(machine my_machine) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 
 	bool quit = false;
 	int command;
-
+	int op_num = 0;
+	std::vector<double> input_vec;
+	cout << "\n\n========== Begin Operation ==========";
 	while (!quit) {
+		op_num += 1;
 		cin.clear();
 		command = 0;
 
-		vectorPrint(myMachine.measurePosn() * myMachine.config.node_sign, "\nThe current position is : ");
-		printf("Current velocity limit: %0.2f mm/s\n", myMachine.config.velocity_limit);
+		printf("\n===== Operation #%i =====\n",op_num);
+		if (!my_machine.settings.r_mode) {
+			vectorPrint(my_machine.current_pos, "The current position is : ");
+		} else {
+			my_machine.current_pos = my_machine.measurePosn();
+			vectorPrint(my_machine.current_pos * my_machine.config.node_sign, "The current position is : ");
+		}
+		printf("Current velocity limit: %0.2f mm/s\n", my_machine.config.velocity_limit);
 		cout << "Please input an operation number.\n";
 		cout << "0: Quit\n";
 		cout << "1: Change Position\n";
 		cout << "2: Linear Jog\n";
 		cout << "3: Change Velocity Limit\n";
+		//cout << "4: Repeat last operation\n"
 		//cout << "4: Preset toolpaths\n";
 		//cout << "5: Machine Info\n";
 		//cout << "N: OPERATION\n";
-		cin >> command;
 
-		if (cin.fail()) {
+		
+		cin >> command;	// Await command input
+
+		if (cin.fail()) {	//If the cin fails (i.e. a char is input when it expected int), ignore the rest of the input and clear the input stream.
 			cout << "That is not a valid command.\n";
 			cin.clear();
 			cin.ignore(100, '\n');
-			continue;
+			continue;		// Go back to the command menu
 		}
 		switch (command)
 		{
@@ -50,17 +67,19 @@ int commandLineControl(machine myMachine, bool r_mode) {
 			quit = true;
 			break;
 		case 1:
-			myMachine.current_pos = myMachine.linearMove(r_mode, true);
+			input_vec = userVectorInput("Please input the target position, separated by commas: ", my_machine.config.num_axes);
+			my_machine.current_pos = my_machine.linearMove(input_vec, true);
 			break;
 		case 2:
-			myMachine.current_pos = myMachine.linearMove(r_mode, false);
+			input_vec = userVectorInput("Please input a jog distance, separated by commas: ", my_machine.config.num_axes);
+			my_machine.current_pos = my_machine.linearMove(input_vec, false);
 			break;
 		case 3:
 			cout << "Please enter a new velocity in mm/s:";
-			cin >> myMachine.config.velocity_limit;
-			if (myMachine.config.velocity_limit > MAX_VEL_LIM) {
+			cin >> my_machine.config.velocity_limit;
+			if (my_machine.config.velocity_limit > my_machine.config.max_velocity_limit) {
 				cout << "Input velocity limit is greater than defined maximum limit. Setting velocity to maximum.\n";
-				myMachine.config.velocity_limit = MAX_VEL_LIM;
+				my_machine.config.velocity_limit = my_machine.config.max_velocity_limit;
 				break;
 			}
 			break;
@@ -81,13 +100,13 @@ int main(int argc, char* argv[])
 {
 	msgUser("Motion Example starting. Press Enter to continue.");
 
-	machine myMachine;
+	machine my_machine;
 
-	bool r_mode = myMachine.startUp();
+	my_machine.startUp();
 	try
 	{
 		// run CLI command loop
-		commandLineControl(myMachine, r_mode);
+		commandLineControl(my_machine);
 	}
 	catch (mnErr& theErr)
 	{
@@ -101,7 +120,7 @@ int main(int argc, char* argv[])
 	}
 
 	//Disable the nodes and close the port
-	myMachine.shutDown();
+	my_machine.shutDown();
 	cout << "Closing program.\n";
 	msgUser("Press any key to continue.");
 	msgUser("");

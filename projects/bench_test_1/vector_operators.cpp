@@ -32,6 +32,12 @@
 //template <class T>
 
 std::vector<double> operator+(const std::vector<double>& a, const std::vector<double>& b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	assert(a.size() == b.size());
 
 	std::vector<double> result;
@@ -43,6 +49,12 @@ std::vector<double> operator+(const std::vector<double>& a, const std::vector<do
 }
 
 std::vector<double> operator-(const std::vector<double>& a, const std::vector<double>& b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	assert(a.size() == b.size());
 
 	std::vector<double> result;
@@ -54,6 +66,12 @@ std::vector<double> operator-(const std::vector<double>& a, const std::vector<do
 }
 
 std::vector<double> operator*(const std::vector<double>& a, const std::vector<double>& b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	assert(a.size() == b.size());
 
 	std::vector<double> result;
@@ -65,6 +83,12 @@ std::vector<double> operator*(const std::vector<double>& a, const std::vector<do
 }
 
 std::vector<double> operator/(const std::vector<double>& a, const std::vector<double>& b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	assert(a.size() == b.size());
 
 	std::vector<double> result;
@@ -76,6 +100,12 @@ std::vector<double> operator/(const std::vector<double>& a, const std::vector<do
 }
 
 std::vector<double> operator==(const std::vector<double>& a, const std::vector<double>& b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	assert(a.size() == b.size());
 
 	std::vector<double> result;
@@ -87,6 +117,12 @@ std::vector<double> operator==(const std::vector<double>& a, const std::vector<d
 }
 
 std::vector<double> operator^(const std::vector<double>& a, double b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	std::vector<double> result;
 	for (size_t i = 0; i < a.size(); i++) {
 		result.push_back(pow(a[i], b));
@@ -95,6 +131,12 @@ std::vector<double> operator^(const std::vector<double>& a, double b) {
 }
 
 std::vector<double> operator&(const std::vector<double>& a, double b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	std::vector<double> result;
 	result.resize(a.size());
 	transform(a.begin(), a.end(), result.begin(), [&a, &b](auto& c) {return c + b; });
@@ -102,6 +144,12 @@ std::vector<double> operator&(const std::vector<double>& a, double b) {
 }
 
 std::vector<double> operator|(const std::vector<double>& a, double b) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	std::vector<double> result;
 	result.resize(a.size());
 	transform(a.begin(), a.end(), result.begin(), [&a, &b](auto& c) {return c * b; });
@@ -109,14 +157,39 @@ std::vector<double> operator|(const std::vector<double>& a, double b) {
 }
 
 double vsum(std::vector<double> a) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	double sum = 0;
 	for (size_t i = 0; i < a.size(); i++) { sum += a[i]; }
 	//return(std::accumulate(a.begin(), a.end(), 0));
 	return sum;
 }
 
-double norm(std::vector<double> a) {
-	return(sqrt(vsum(a ^ 2)));
+//double norm(std::vector<double> a) {
+//
+//	/// Summary: 
+//	/// Params: 
+//	/// Returns: 
+//	/// Notes: 
+//
+//	return(sqrt(vsum(a ^ 2)));
+//}
+
+std::vector<double> normalize(std::vector<double> a) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
+	double b = sqrt(vsum(a ^ 2));		// Take Norm of Vector
+	b = 1 / b;							// Take reciprocal of norm
+	std::vector<double> res = a | b;	// Multiply vector by reciprocal of norm
+	return res;
 }
 
 //std::vector<double> operator+(const std::vector<double>& a, const std::vector<double>& b) {

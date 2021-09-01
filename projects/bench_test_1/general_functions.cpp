@@ -24,10 +24,22 @@
 /*------------------------------ Module Code -------------------------------*/
 // General Functions
 char msgUser(const char* msg) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+
 	std::cout << msg;
 	return getchar();
 }
 void vectorPrint(std::vector<double> const& a, std::string comment) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes:	
+
 	//Prints a std::vector with a given in
 	std::cout << comment << "(";
 
@@ -37,6 +49,12 @@ void vectorPrint(std::vector<double> const& a, std::string comment) {
 }
 
 std::vector<double> parseString(std::string input, char delimiter) {
+
+	/// Summary: 
+	/// Params: 
+	/// Returns: 
+	/// Notes: 
+	input.erase(std::remove_if(input.begin(), input.end(), isspace), input.end());
 	int last_slice = 0;
 	std::vector<double> tmp_vec;
 	for (size_t i = 0; i <= input.length(); i++) {
@@ -62,6 +80,26 @@ std::vector<double> parseString(std::string input, char delimiter) {
 	}
 
 	return tmp_vec;
+}
+
+std::vector<double> userVectorInput(std::string prompt, int expected_size) {
+	std::string input_str;
+	std::vector <double> input_vec;
+	while (true) {
+		std::cout << prompt;
+		std::cin >> input_str;
+
+		input_str.erase(std::remove_if(input_str.begin(), input_str.end(), isspace), input_str.end());
+
+		input_vec = parseString(input_str, ',');	// Parse the user input string into 
+		if (input_vec.size() == expected_size) {
+			return input_vec;
+		}
+		else {
+			std::cout << "\nSize of input vector does not match the number of axes in the system: " << expected_size;
+			std::cout << "\nPlease try again.";
+		}
+	}
 }
 /*----------------------------- Test Harness -------------------------------*/
 
