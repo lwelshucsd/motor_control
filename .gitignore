@@ -1,5 +1,6 @@
 Win32/
 .vs/
+/.vs
 # Prerequisites
 *.d
 
