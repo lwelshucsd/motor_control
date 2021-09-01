@@ -1,3 +1,5 @@
+Win32/
+.vs/
 # Prerequisites
 *.d
 
@@ -30,7 +32,7 @@
 *.exe
 *.out
 *.app
-Win32/
+
 # Win32/Debug/intermediate/Example-Motion.log
 # Win32/Debug/intermediate/Example-Motion.tlog/CL.command.1.tlog
 # Win32/Debug/intermediate/Example-Motion.tlog/Example-Motion.lastbuildstate
