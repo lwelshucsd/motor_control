@@ -1,26 +1,17 @@
-﻿  bench_test_1.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(70,108): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(74,103): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-  general_functions.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\general_functions.cpp(46,20): warning C4018: '<': signed/unsigned mismatch
-  motor_functions.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(146,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(186,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(214,40): warning C4244: '=': conversion from '_Ty' to 'int', possible loss of data
+﻿  motor_functions.cpp
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(143,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(183,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(211,40): warning C4244: '=': conversion from '_Ty' to 'int', possible loss of data
           with
           [
               _Ty=double
           ]
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(223,49): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(356,16): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(358,32): warning C4018: '<': signed/unsigned mismatch
-  vector_operators.cpp
-  Generating Code...
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(220,50): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(353,16): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(355,32): warning C4018: '<': signed/unsigned mismatch
   Copying sFoundation Files
   cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\"
           1 file(s) copied.
           1 file(s) copied.
           1 file(s) copied.
-  LINK : C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exe not found or not built by the last incremental link; performing full link
-     Creating library C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.lib and object C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exp
   bench_test_1.vcxproj -> C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exe

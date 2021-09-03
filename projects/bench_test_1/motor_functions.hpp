@@ -1,15 +1,12 @@
 /****************************************************************************
  Module
-	module_name.h
+	motor_funcitons.hpp
  Description
-	description of module
- Notes
-	additional notes
+	This is a set of funcitons utilizing the clearpath sFoundation motor
+	control library. This library is intended to abstract the node-based
+	functions in sFoundation to work on a machine level with an arbitrary
+	number of axes.
 
- History
- When             Who    What/Why
- --------------   ---    --------
- DD MMMM YYYY     XXX    changes
 *****************************************************************************/
 #ifndef MOTOR_FUNCTIONS_HPP_
 #define MOTOR_FUNCTIONS_HPP_
@@ -24,15 +21,15 @@
 
 class machine {
 private:
-	sFnd::SysManager* myMgr;
-	void loadConfig(char delimiter);
-	int openPorts();
-	int enableNodes();
-	int disableNodes();
-	int setConfig();
-	void closePorts();
+	sFnd::SysManager* my_mgr;
+	void load_config_f(char delimiter);
+	int open_ports_f();
+	int enable_nodes_f();
+	int disable_nodes_f();
+	int set_config_f();
+	void close_ports_f();
 public:
-	struct mechConfig
+	struct mech_config
 	{
 		std::vector<double> is_follower_node;
 		std::vector<double> node_sign;
@@ -43,23 +40,24 @@ public:
 		double velocity_limit;
 		double max_velocity_limit;
 		double num_axes = is_rotary_axis.size();
+		double accel_limit = 100000 * 6400 / 60;
 	} config;
-	struct machineSettings {
+	struct machine_settings {
 		bool r_mode = false;
 	} settings;
-	std::vector<double> current_pos;
-	void setSpeed();
-	int homePosn();
-	std::vector<double> measurePosn();
-	std::vector<double> linearMove(std::vector<double> input_vec, bool target_is_absolut);
-	int startUp();
-	void shutDown();
+	std::vector<double> current_position;
+	//void setSpeed();
+	int home_position_f();
+	std::vector<double> measure_position_f();
+	std::vector<double> move_linear_f(std::vector<double> input_vec, bool target_is_absolute);
+	int start_up_f();
+	void shut_down_f();
 };
 
 /*------------------------------- Variables --------------------------------*/
 
 /*---------------------- Public Function Prototypes ------------------------*/
-//bool moveIsDone(class IPort& myPort);
+//bool moveIsDone(class IPort& my_port);
 
 /*------------------------------ End of file -------------------------------*/
 #endif /* MOTOR_FUNCTIONS_HPP_ */

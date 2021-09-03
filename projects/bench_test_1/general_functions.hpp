@@ -1,15 +1,10 @@
 /****************************************************************************
  Module
-    module_name.h
+    general_functions.hpp
  Description
-    description of module
- Notes
-    additional notes
+    This is a set of miscellaneous and general use functions for the clearpath
+    motor machine contorl software.
 
- History
- When             Who    What/Why
- --------------   ---    --------
- DD MMMM YYYY     XXX    changes
 *****************************************************************************/
 #ifndef GENERAL_FUNCTIONS_HPP_
 #define GENERAL_FUNCTIONS_HPP_
@@ -28,10 +23,9 @@
 
 /*---------------------- Public Function Prototypes ------------------------*/
 // IO Functions
-char msgUser(const char* msg);
-void vectorPrint(std::vector<double> const& a, std::string comment);
-//std::vector<double> parseString(std::string input, char delimiter);
-std::vector<double> userVectorInput(std::string prompt, int expected_size);
+char msg_user_f(const char* msg);
+void print_vector_f(std::vector<double> const& a, std::string comment);
+std::vector<double> user_input_vector_f(std::string prompt, int expected_size);
 
 /*------------------------------ End of file -------------------------------*/
 #endif /* MOTOR_FUNCTIONS_HPP_ */

@@ -1,15 +1,11 @@
 /****************************************************************************
  Module
-	module_name.c
+	vector_operators.cpp
  Description
-	description of module
- Notes
-	additional notes
+	This is a set of vector overload operator and vector function definition
+	intended to improve ease of use of standard vector data types for basic
+	linear algebra and vector operation math.
 
- History
- When             Who    What/Why
- --------------   ---    --------
- DD MMMM YYYY     XXX    changes
 *****************************************************************************/
 
 /*----------------------------- Include Files ------------------------------*/
@@ -33,10 +29,7 @@
 
 std::vector<double> operator+(const std::vector<double>& a, const std::vector<double>& b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Performs elementwise vector addition on two double vectors a & b
 
 	assert(a.size() == b.size());
 
@@ -50,10 +43,7 @@ std::vector<double> operator+(const std::vector<double>& a, const std::vector<do
 
 std::vector<double> operator-(const std::vector<double>& a, const std::vector<double>& b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Performs elementwise vector subtraction on two double vectors a & b
 
 	assert(a.size() == b.size());
 
@@ -67,10 +57,7 @@ std::vector<double> operator-(const std::vector<double>& a, const std::vector<do
 
 std::vector<double> operator*(const std::vector<double>& a, const std::vector<double>& b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Performs elementwise vector multiplication on two double vectors a & b
 
 	assert(a.size() == b.size());
 
@@ -84,10 +71,7 @@ std::vector<double> operator*(const std::vector<double>& a, const std::vector<do
 
 std::vector<double> operator/(const std::vector<double>& a, const std::vector<double>& b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Performs elementwise vector division on two double vectors a & b
 
 	assert(a.size() == b.size());
 
@@ -101,10 +85,8 @@ std::vector<double> operator/(const std::vector<double>& a, const std::vector<do
 
 std::vector<double> operator==(const std::vector<double>& a, const std::vector<double>& b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: evaluates elementwise equivalence for two double vectors a & b
+	/// Returns: vector of 1 or 0
 
 	assert(a.size() == b.size());
 
@@ -118,10 +100,7 @@ std::vector<double> operator==(const std::vector<double>& a, const std::vector<d
 
 std::vector<double> operator^(const std::vector<double>& a, double b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Raises all elements in vector a to exponential power b
 
 	std::vector<double> result;
 	for (size_t i = 0; i < a.size(); i++) {
@@ -132,10 +111,7 @@ std::vector<double> operator^(const std::vector<double>& a, double b) {
 
 std::vector<double> operator&(const std::vector<double>& a, double b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: adds scalar b to each element in vector a
 
 	std::vector<double> result;
 	result.resize(a.size());
@@ -145,10 +121,7 @@ std::vector<double> operator&(const std::vector<double>& a, double b) {
 
 std::vector<double> operator|(const std::vector<double>& a, double b) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Multiplies each element in vector a by scalar b
 
 	std::vector<double> result;
 	result.resize(a.size());
@@ -156,12 +129,9 @@ std::vector<double> operator|(const std::vector<double>& a, double b) {
 	return result;
 }
 
-double vsum(std::vector<double> a) {
+double vector_sum(std::vector<double> a) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: evaluates the sum total of double vector a
 
 	double sum = 0;
 	for (size_t i = 0; i < a.size(); i++) { sum += a[i]; }
@@ -169,29 +139,17 @@ double vsum(std::vector<double> a) {
 	return sum;
 }
 
-//double norm(std::vector<double> a) {
-//
-//	/// Summary: 
-//	/// Params: 
-//	/// Returns: 
-//	/// Notes: 
-//
-//	return(sqrt(vsum(a ^ 2)));
-//}
-
 std::vector<double> normalize(std::vector<double> a) {
 
-	/// Summary: 
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Normalizes vector a
 
-	double b = sqrt(vsum(a ^ 2));		// Take Norm of Vector
+	double b = sqrt(vector_sum(a ^ 2));		// Take Norm of Vector
 	b = 1 / b;							// Take reciprocal of norm
 	std::vector<double> res = a | b;	// Multiply vector by reciprocal of norm
 	return res;
 }
 
+///// Vector overload operator definition template
 //std::vector<double> operator+(const std::vector<double>& a, const std::vector<double>& b) {
 //	assert(a.size() == b.size());
 //

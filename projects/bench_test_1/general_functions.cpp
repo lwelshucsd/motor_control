@@ -1,15 +1,10 @@
 /****************************************************************************
  Module
-    module_name.c
+	general_functions.cpp
  Description
-    description of module
- Notes
-    additional notes
+	This is a set of miscellaneous and general use functions for the clearpath
+	motor machine contorl software.
 
- History
- When             Who    What/Why
- --------------   ---    --------
- DD MMMM YYYY     XXX    changes
 *****************************************************************************/
 
 /*----------------------------- Include Files ------------------------------*/
@@ -23,7 +18,7 @@
 /*--------------------- Module Function Prototypes -------------------------*/
 /*------------------------------ Module Code -------------------------------*/
 // General Functions
-char msgUser(const char* msg) {
+char msg_user_f(const char* msg) {
 
 	/// Summary: 
 	/// Params: 
@@ -33,7 +28,7 @@ char msgUser(const char* msg) {
 	std::cout << msg;
 	return getchar();
 }
-void vectorPrint(std::vector<double> const& a, std::string comment) {
+void print_vector_f(std::vector<double> const& a, std::string comment) {
 
 	/// Summary: 
 	/// Params: 
@@ -48,7 +43,7 @@ void vectorPrint(std::vector<double> const& a, std::string comment) {
 	std::cout << "\b\b)\n";
 }
 
-std::vector<double> parseString(std::string input, char delimiter) {
+std::vector<double> parse_string_f(std::string input, char delimiter) {
 
 	/// Summary: 
 	/// Params: 
@@ -82,7 +77,7 @@ std::vector<double> parseString(std::string input, char delimiter) {
 	return tmp_vec;
 }
 
-std::vector<double> userVectorInput(std::string prompt, int expected_size) {
+std::vector<double> user_input_vector_f(std::string prompt, int expected_size) {
 	std::string input_str;
 	std::vector <double> input_vec;
 	while (true) {
@@ -91,7 +86,7 @@ std::vector<double> userVectorInput(std::string prompt, int expected_size) {
 
 		input_str.erase(std::remove_if(input_str.begin(), input_str.end(), isspace), input_str.end());
 
-		input_vec = parseString(input_str, ',');	// Parse the user input string into 
+		input_vec = parse_string_f(input_str, ',');	// Parse the user input string into 
 		if (input_vec.size() == expected_size) {
 			return input_vec;
 		}

@@ -1,22 +1,16 @@
 /****************************************************************************
  Module
-    module_name.h
+    vector_operators.hpp
  Description
-    description of module
- Notes
-    additional notes
+    This is a set of vector overload operator and vector function definition 
+    intended to improve ease of use of standard vector data types for basic 
+    linear algebra and vector operation math.
 
- History
- When             Who    What/Why
- --------------   ---    --------
- DD MMMM YYYY     XXX    changes
 *****************************************************************************/
 #ifndef VECTOR_OPERATORS_HPP_
 #define VECTOR_OPERATORS_HPP_
 /*----------------------------- Include Files ------------------------------*/
 #include <vector>
-
-
 
 /*-------------------------------- Defines ---------------------------------*/
 
@@ -35,8 +29,7 @@ std::vector<double> operator==(const std::vector<double>& a, const std::vector<d
 std::vector<double> operator^(const std::vector<double>& a, double b);
 std::vector<double> operator&(const std::vector<double>& a, double b);
 std::vector<double> operator|(const std::vector<double>& a, double b);
-double vsum(std::vector<double> a);
-//double norm(std::vector<double> a);
+double vector_sum(std::vector<double> a);
 std::vector<double> normalize(std::vector<double> a);
 /*------------------------------ End of file -------------------------------*/
 #endif /* VECTOR_OPERATORS_HPP_ */
