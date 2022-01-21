@@ -34,8 +34,8 @@ namespace fs = std::filesystem;
 bool move_is_done_f(class IPort& my_port) {
 
 	/// Summary: Checks to see if all nodes have triggered the MoveIsDone flag, meaning that whatever movement is planned has been completed by all nodes.
-	/// Params: my_port
-	/// Returns: bool true if all nodes have completed their movement. false if any node is still moving.
+	/// Params: my_port: IPort object of port connecting to nodes
+	/// Returns: bool true if all nodes have completed their movement. false if ANY node is still moving.
 	/// Notes:
 
 	// Check all nodes on port.
@@ -45,60 +45,123 @@ bool move_is_done_f(class IPort& my_port) {
 	return true;	// If all nodes are done, return true.
 }
 
+std::vector<double> push_back_string_f(std::vector<double> input_vector, std::string input_str, char delimiter) {
+
+	/// Summary: Takes string of vector and fills into the back of an input vector using std::vector.push_back()
+	/// Params:	input_vector: The vector to fill the data into; must be declared prior to use 
+	///			input_str: The string version of the data to include. This can be surrounded by the following brackets: [], (), {}, but
+	///						must not contain anything else outside the brackets. It can also have spaces.
+	///			delimiter: The character separating the data points in the input string vector. Must not be a space, but can be any reasonable
+	///						character, such as ; , |
+	/// Returns: An expanded copy of input_vector including the new data at the end of the vector. If input_vector is exmpty originally, output is
+	///				the input_string data in std::vector form
+	/// Notes: 
+	
+	// Remove extra characters
+	input_str.erase(std::remove_if(input_str.begin(), input_str.end(), isspace), input_str.end());
+	input_str.erase(std::remove(input_str.begin(), input_str.end(), '{'), input_str.end());
+	input_str.erase(std::remove(input_str.begin(), input_str.end(), '}'), input_str.end());
+	input_str.erase(std::remove(input_str.begin(), input_str.end(), '['), input_str.end());
+	input_str.erase(std::remove(input_str.begin(), input_str.end(), ']'), input_str.end());
+	input_str.erase(std::remove(input_str.begin(), input_str.end(), '('), input_str.end());
+	input_str.erase(std::remove(input_str.begin(), input_str.end(), ')'), input_str.end());
+	
+	int delimiter_pos=0;
+	double input_val;
+	// std::vector.find() returns -1 if not found. After last data point, all delimiters have been removed from string, so the loop ends
+	while (delimiter_pos != -1) {	
+		delimiter_pos = input_str.find(delimiter);
+		input_val = std::stod(input_str.substr(0, delimiter_pos));
+		input_str.erase(0, delimiter_pos + 1);		// delete the parsed data from the string
+		input_vector.push_back(input_val);			// insert data to vector
+	}
+	return input_vector;
+	 
+}
 
 // Machine Specific functions
 void machine::load_config_f(char delimiter) {
 
 	/// Summary: Loads the mechanical configuration data of the machine into the machine.config data structure
-	/// Params: None
+	/// Params: delimiter: The character separating the nnput config data from the data names
 	/// Returns: Void
 	/// Notes: 
 	///		(08/30/21) - Building way to load mechanical config from .cfg file. -TH
+	///		(11/12/21) - Able to load configs with set variables frm .txt file, but not thoroughly tested. -TH
 
+	// Include the name of all expected config file variables here
 	std::vector<std::string> var_names = {
-		"num_axes",
-		"velocity_limit_default",
-		"velocity_limit_max",
-		"cnts_per_rev",
-		"is_follower_node",
-		"is_rotary_axis",
-		"parent_axis",
-		"lead"
+		"node_is_follower",
+		"node_sign",
+		"node_lead",
+		"node_cnts_per_rev",
+		"node_parent_axis",
+		"machine_accel_limit",
+		"machine_velocity_limit",
+		"machine_velocity_max",
+		"node_is_rotary_axis"
 	};
-	std::string line;
+
+	// Prep file for data parsing
 	int delimiter_pos;
-	std::string key, value;
-	std::ifstream myReadFile("mech_config.cfg");
-	std::cout << "\n";
+	std::string line;
+	std::string key;
+	std::vector<std::string> values(var_names.size());
+	std::ifstream myReadFile("mech_config.txt");
+	//std::cout << "\n";
+	int n_found_variables = 0;
+	int key_index;
+
+	// Scan through file line by line for variables
 	while (std::getline(myReadFile, line)) {
-		line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
-		delimiter_pos = line.find(delimiter);
-		key = line.substr(0, delimiter_pos);
-		value = line.substr(delimiter_pos + 1);
-		if (std::find(var_names.begin(), var_names.end(), key) != var_names.end()) {
-			std::cout << key << "\n";
+		line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end()); 			// Remove spaces from line
+		delimiter_pos = line.find(delimiter);												// Find delimiter
+		key = line.substr(0, line.find("["));												// Find variable name, occurs before [variable units]
+		if (std::find(var_names.begin(), var_names.end(), key) != var_names.end()) {		// Try to find variable name in expected variables
+			key_index = find(var_names.begin(), var_names.end(), key) - var_names.begin();	// Get index of variable to store in string values vector
+			values[key_index]= line.substr(delimiter_pos + 1);								// Store input string
+			n_found_variables += 1;
 		}
-		else if (line.substr(0, 2) == "//") {
+		else if (line.substr(0, 2) == "//") {	// double slash indicates comments
 			continue;
 		}
-		else {
+		else {									// If variable in config is not expected, it is skipped, but noted in command-line
 			std::cout << "Ignoring unrecognized config element: " << key << "\n";
 		}
-
 	}
-
 	myReadFile.close();
 
-	config.is_follower_node = { 0, 0 };	// denotes whether the node is a leader or follower node
-	config.node_sign = { 1, -1 };	// denotes the direction that we consider positive relative to the nodbe's positive
-	config.lead = { 108, 108 };	// spatial change (mm) per roation of the node shaft
-	config.is_rotary_axis = { 0, 0 };
-	config.parent_axis = { 0, 1 };
-	config.velocity_limit = 250; //mm/s
-	config.num_axes = config.is_follower_node.size() - vector_sum(config.is_follower_node);
-	config.lead_per_cnt = config.lead | (1 / double(6400));
-	config.max_velocity_limit = double(3000)/60*36;
-	//config.accel_limit
+	// Run check that all expected variables are found
+	if (n_found_variables > var_names.size()) {
+		std::cout << "Number of variables in config file exceeds expected.\n";
+		std::cout << "Found Variables: " << n_found_variables << " ||| Expected: " << var_names.size();
+		std::cout << "Please check for repeat variables.";
+		throw "Too many recognized variables in config file.";
+	}
+	else if (n_found_variables < var_names.size()) {
+		std::cout << "Number of variables in config file is less than expected.\n";
+		std::cout << "Found Variables: " << n_found_variables << " ||| Expected: " << var_names.size();
+		std::cout << "Please check for missing variables.";
+		throw "Missing variables in config file.";
+	}
+	else {	// If expected number of variables are found
+		// Assign each expected config variable to their input value
+		// New config variables must be added here
+		config.node_is_follower = push_back_string_f(config.node_is_follower, values[0], ',');
+		config.node_sign = push_back_string_f(config.node_sign, values[1], ',');
+		config.node_lead = push_back_string_f(config.node_lead, values[2], ',');
+		config.node_cnts_per_rev = push_back_string_f(config.node_cnts_per_rev, values[3], ',');
+		config.node_parent_axis = push_back_string_f(config.node_parent_axis, values[4], ',');
+		config.machine_accel_limit = stod(values[5]);
+		config.machine_velocity_limit = stod(values[6]);
+		config.machine_velocity_max = stod(values[7]);
+		config.node_is_rotary_axis = push_back_string_f(config.node_is_rotary_axis, values[8], ',');
+	}
+
+	// Calculate derived config variables that are not needed in .txt file
+	config.machine_num_axes = config.node_is_follower.size() - vector_sum(config.node_is_follower);
+	config.node_lead_per_cnt = config.node_lead / config.node_cnts_per_rev;
+
 }
 
 int machine::set_config_f() {
@@ -106,7 +169,11 @@ int machine::set_config_f() {
 	/// Summary: Loads required parameters/operation modes into each node
 	/// Params: 
 	/// Returns: int representing success (1) or failure (-1)
-	/// Notes: (09/01/2021) - May be worthwile to have these parameters be config variables -TH
+	/// Notes:	(09/01/2021) - May be worthwile to have these parameters be config variables -TH
+	///			(11/12/2021) - Clarification: it may be worthwile to have the AccUnit and VelUnit be config variables
+	///							because in rotary systems, using RPM/s and RPM may be simpler. Counts/s^2 and Counts/s
+	///							make more sense in translational systems such as the gantry. It would be more robust 
+	///							to have these in the config .txt file. -TH
 
 	try {
 		IPort& my_port = my_mgr->Ports(0);
@@ -114,8 +181,8 @@ int machine::set_config_f() {
 		for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
 			my_port.Nodes(iNode).AccUnit(INode::COUNTS_PER_SEC2);			// set acceleration limit tracking unit
 			my_port.Nodes(iNode).VelUnit(INode::COUNTS_PER_SEC);				// set velocity limit unit
-			my_port.Nodes(iNode).Motion.AccLimit = config.accel_limit;		// set acceleration limit
-			my_port.Nodes(iNode).Motion.VelLimit = config.velocity_limit;	// set default velocity limit
+			my_port.Nodes(iNode).Motion.AccLimit = config.machine_accel_limit;		// set acceleration limit
+			my_port.Nodes(iNode).Motion.VelLimit = config.machine_velocity_limit;	// set default velocity limit
 			my_port.Nodes(iNode).Motion.PosnMeasured.AutoRefresh(true);
 		}
 		return 1;
@@ -140,9 +207,9 @@ std::vector<double> machine::measure_position_f() {
 	/// Notes: 
 
 	IPort& my_port = my_mgr->Ports(0);	// Create Port object
-	int num_axes = config.num_axes;
+	int machine_num_axes = config.machine_num_axes;
 
-	std::vector<double> position(config.is_follower_node.size());	// Initialize position vector
+	std::vector<double> position(config.node_is_follower.size());	// Initialize position vector
 
 	int dim_ind = 0;
 	// Measure each node's position and fill them into a vector
@@ -150,9 +217,9 @@ std::vector<double> machine::measure_position_f() {
 		position[iNode] = (my_port.Nodes(iNode).Motion.PosnMeasured)*config.node_sign[iNode];
 	}
 
-	position = position * config.lead_per_cnt;	//convert count-space to real-space
+	position = position * config.node_lead_per_cnt;	//convert count-space to real-space
 	for (size_t iNode = 0; iNode < position.size(); iNode++) {
-		if (config.is_follower_node[iNode]) {
+		if (config.node_is_follower[iNode]) {
 			position.erase(position.begin() + iNode);
 		}
 	}
@@ -168,9 +235,8 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 	/// Params:	input_vec: a double vector of the desired position/job distance for the machine
 	///			target_is_absolute: a bool representing if the target of the move is an absolute positional change or a relative position jog.
 	/// Returns: Function returns a vector of the measured position of the machine after the movement is completed (or after it times out).
-	/// Notes:	(08/31/21)	- Need to move the user input section outside of the function to allow for use in preset toolpaths. -TH
-	///						- Need to adjust velocity calculations to account for lead & follower nodes
-
+	/// Notes:	
+	
 	IPort& my_port = my_mgr->Ports(0);	// Create a shortcut for the port
 	bool r_mode = settings.r_mode;
 
@@ -180,20 +246,20 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 	std::vector<double> current_pos = machine::measure_position_f();
 
 	// Create shortcuts to important config members
-	int num_axes = config.num_axes;
-	double velocity_limit = config.velocity_limit;
-	std::vector<double> is_follower_node = config.is_follower_node;
-	std::vector<double> lead_per_cnt = config.lead_per_cnt;
+	int machine_num_axes = config.machine_num_axes;
+	double machine_velocity_limit = config.machine_velocity_limit;
+	std::vector<double> node_is_follower = config.node_is_follower;
+	std::vector<double> lead_per_cnt = config.node_lead_per_cnt;
 	std::vector<double> node_sign = config.node_sign;
 
 	// Compute velocity vector for movement 
 	vel_vec = input_vec - (current_pos | target_is_absolute);	// Compute movement direction vector
 	vel_vec = normalize(vel_vec);								// Normalize movement direction vector
-	vel_vec = vel_vec | velocity_limit;							// Multiply by overall velocity limit
+	vel_vec = vel_vec | machine_velocity_limit;							// Multiply by overall velocity limit
 
 	int node_axis;
 	double node_input_cnts;
-	double node_velocity_limit;
+	double node_machine_velocity_limit;
 
 
 	if (r_mode) {
@@ -208,11 +274,11 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 	else {
 		// Set up trigger group  & velocity for all nodes
 		for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
-			node_axis = config.parent_axis[iNode];
+			node_axis = config.node_parent_axis[iNode];
 
 			// Convert velocity to counts/s and apply limit
-			node_velocity_limit = vel_vec[node_axis] / lead_per_cnt[iNode];
-			my_port.Nodes(iNode).Motion.VelLimit = abs(node_velocity_limit);
+			node_machine_velocity_limit = vel_vec[node_axis] / lead_per_cnt[iNode];
+			my_port.Nodes(iNode).Motion.VelLimit = abs(node_machine_velocity_limit);
 
 			//Convert distance to counts and set up trigger
 			node_input_cnts = input_vec[node_axis] / lead_per_cnt[iNode] * node_sign[iNode];
@@ -350,12 +416,12 @@ int machine::home_position_f() {
 	printf("\n===== Homing All Axes =====\n");
 	try {
 		IPort& my_port = my_mgr->Ports(0);		// Create a shortcut for the port
-		int num_axes = config.num_axes;
-		std::vector<double> is_follower_node = config.is_follower_node;
-		for (size_t iAxis = 0; iAxis < num_axes; iAxis++) {
+		int machine_num_axes = config.machine_num_axes;
+		std::vector<double> node_is_follower = config.node_is_follower;
+		for (size_t iAxis = 0; iAxis < machine_num_axes; iAxis++) {
 			printf("Homing Axis %d\n", iAxis);
 			for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
-				if (config.parent_axis[iNode] == iAxis) {
+				if (config.node_parent_axis[iNode] == iAxis) {
 					INode& the_node = my_port.Nodes(iNode);
 					if (the_node.Motion.Homing.HomingValid())
 					{
@@ -486,7 +552,7 @@ int machine::start_up_f() {
 	/// Returns: 
 	/// Notes: 
 
-	load_config_f('=');
+	load_config_f(':');
 
 
 	size_t port_count = open_ports_f();
@@ -525,8 +591,8 @@ int machine::start_up_f() {
 			int res = enable_nodes_f();
 			if (res != 1) { return res; }
 
-			res = home_position_f();
-			if (res != 1) { return res; }
+			//res = home_position_f();
+			//if (res != 1) { return res; }
 
 			res = set_config_f(/*mode - counts vs revs*/);
 			if (res != 1) { return res; }

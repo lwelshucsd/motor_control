@@ -40,7 +40,7 @@ int CML_control_loop_f(machine my_machine) {
 			my_machine.current_position = my_machine.measure_position_f();
 			print_vector_f(my_machine.current_position * my_machine.config.node_sign, "The current position is : ");
 		}
-		printf("Current velocity limit: %0.2f mm/s\n", my_machine.config.velocity_limit);
+		printf("Current velocity limit: %0.2f mm/s\n", my_machine.config.machine_velocity_limit);
 		cout << "Please input an operation number.\n";
 		cout << "0: Quit\n";
 		cout << "1: Change Position\n";
@@ -66,19 +66,19 @@ int CML_control_loop_f(machine my_machine) {
 			quit = true;
 			break;
 		case 1:
-			input_vec = user_input_vector_f("Please input the target position, separated by commas: ", my_machine.config.num_axes);
+			input_vec = user_input_vector_f("Please input the target position, separated by commas: ", my_machine.config.machine_num_axes);
 			my_machine.current_position = my_machine.move_linear_f(input_vec, true);
 			break;
 		case 2:
-			input_vec = user_input_vector_f("Please input a jog distance, separated by commas: ", my_machine.config.num_axes);
+			input_vec = user_input_vector_f("Please input a jog distance, separated by commas: ", my_machine.config.machine_num_axes);
 			my_machine.current_position = my_machine.move_linear_f(input_vec, false);
 			break;
 		case 3:
 			cout << "Please enter a new velocity in mm/s:";
-			cin >> my_machine.config.velocity_limit;
-			if (my_machine.config.velocity_limit > my_machine.config.max_velocity_limit) {
+			cin >> my_machine.config.machine_velocity_limit;
+			if (my_machine.config.machine_velocity_limit > my_machine.config.machine_velocity_max) {
 				cout << "Input velocity limit is greater than defined maximum limit. Setting velocity to maximum.\n";
-				my_machine.config.velocity_limit = my_machine.config.max_velocity_limit;
+				my_machine.config.machine_velocity_limit = my_machine.config.machine_velocity_max;
 				break;
 			}
 			break;
@@ -102,6 +102,8 @@ int main(int argc, char* argv[])
 	machine my_machine;
 
 	int res = my_machine.start_up_f();
+
+
 	if (res == 1) {
 		try
 		{

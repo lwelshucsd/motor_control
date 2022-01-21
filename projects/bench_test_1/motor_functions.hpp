@@ -31,16 +31,17 @@ private:
 public:
 	struct mech_config
 	{
-		std::vector<double> is_follower_node;
+		std::vector<double> node_is_follower;
 		std::vector<double> node_sign;
-		std::vector<double> lead;
-		std::vector<double> is_rotary_axis;
-		std::vector<double> lead_per_cnt;
-		std::vector<double> parent_axis;
-		double velocity_limit;
-		double max_velocity_limit;
-		double num_axes = is_rotary_axis.size();
-		double accel_limit = 100000 * 6400 / 60;
+		std::vector<double> node_lead;
+		std::vector<double> node_is_rotary_axis;
+		std::vector<double> node_lead_per_cnt;
+		std::vector<double> node_cnts_per_rev;
+		std::vector<double> node_parent_axis;
+		double machine_velocity_limit;
+		double machine_velocity_max;
+		double machine_num_axes;
+		double machine_accel_limit;
 	} config;
 	struct machine_settings {
 		bool r_mode = false;
