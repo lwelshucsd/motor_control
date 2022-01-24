@@ -86,7 +86,7 @@ std::vector<double> operator/(const std::vector<double>& a, const std::vector<do
 std::vector<double> operator==(const std::vector<double>& a, const std::vector<double>& b) {
 
 	/// Summary: evaluates elementwise equivalence for two double vectors a & b
-	/// Returns: vector of 1 or 0
+	/// Returns: vector of 1s and/or 0s
 
 	assert(a.size() == b.size());
 

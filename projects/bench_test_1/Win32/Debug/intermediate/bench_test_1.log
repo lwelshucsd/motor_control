@@ -1,24 +1,13 @@
-﻿  bench_test_1.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(69,112): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\bench_test_1.cpp(73,107): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-  motor_functions.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(120,24): warning C4018: '>': signed/unsigned mismatch
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(126,29): warning C4018: '<': signed/unsigned mismatch
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(199,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(239,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(267,45): warning C4244: '=': conversion from '_Ty' to 'int', possible loss of data
+﻿  motor_functions.cpp
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(135,24): warning C4018: '>': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(141,29): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(210,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(249,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(277,45): warning C4244: '=': conversion from '_Ty' to 'int', possible loss of data
           with
           [
               _Ty=double
           ]
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(276,50): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(409,24): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(411,32): warning C4018: '<': signed/unsigned mismatch
-  Generating Code...
-  Copying sFoundation Files
-  cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\"
-          1 file(s) copied.
-          1 file(s) copied.
-          1 file(s) copied.
-     Creating library C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.lib and object C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exp
-  bench_test_1.vcxproj -> C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exe
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(286,50): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(422,24): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\motor_control\projects\bench_test_1\motor_functions.cpp(425,32): warning C4018: '<': signed/unsigned mismatch

@@ -56,7 +56,7 @@ std::vector<double> push_back_string_f(std::vector<double> input_vector, std::st
 	/// Returns: An expanded copy of input_vector including the new data at the end of the vector. If input_vector is exmpty originally, output is
 	///				the input_string data in std::vector form
 	/// Notes: 
-	
+
 	// Remove extra characters
 	input_str.erase(std::remove_if(input_str.begin(), input_str.end(), isspace), input_str.end());
 	input_str.erase(std::remove(input_str.begin(), input_str.end(), '{'), input_str.end());
@@ -65,18 +65,18 @@ std::vector<double> push_back_string_f(std::vector<double> input_vector, std::st
 	input_str.erase(std::remove(input_str.begin(), input_str.end(), ']'), input_str.end());
 	input_str.erase(std::remove(input_str.begin(), input_str.end(), '('), input_str.end());
 	input_str.erase(std::remove(input_str.begin(), input_str.end(), ')'), input_str.end());
-	
-	int delimiter_pos=0;
+
+	int delimiter_pos = 0;
 	double input_val;
 	// std::vector.find() returns -1 if not found. After last data point, all delimiters have been removed from string, so the loop ends
-	while (delimiter_pos != -1) {	
+	while (delimiter_pos != -1) {
 		delimiter_pos = input_str.find(delimiter);
 		input_val = std::stod(input_str.substr(0, delimiter_pos));
 		input_str.erase(0, delimiter_pos + 1);		// delete the parsed data from the string
 		input_vector.push_back(input_val);			// insert data to vector
 	}
 	return input_vector;
-	 
+
 }
 
 // Machine Specific functions
@@ -119,7 +119,7 @@ void machine::load_config_f(char delimiter) {
 		key = line.substr(0, line.find("["));												// Find variable name, occurs before [variable units]
 		if (std::find(var_names.begin(), var_names.end(), key) != var_names.end()) {		// Try to find variable name in expected variables
 			key_index = find(var_names.begin(), var_names.end(), key) - var_names.begin();	// Get index of variable to store in string values vector
-			values[key_index]= line.substr(delimiter_pos + 1);								// Store input string
+			values[key_index] = line.substr(delimiter_pos + 1);								// Store input string
 			n_found_variables += 1;
 		}
 		else if (line.substr(0, 2) == "//") {	// double slash indicates comments
@@ -214,7 +214,7 @@ std::vector<double> machine::measure_position_f() {
 	int dim_ind = 0;
 	// Measure each node's position and fill them into a vector
 	for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
-		position[iNode] = (my_port.Nodes(iNode).Motion.PosnMeasured)*config.node_sign[iNode];
+		position[iNode] = (my_port.Nodes(iNode).Motion.PosnMeasured) * config.node_sign[iNode];
 	}
 
 	position = position * config.node_lead_per_cnt;	//convert count-space to real-space
@@ -236,7 +236,7 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 	///			target_is_absolute: a bool representing if the target of the move is an absolute positional change or a relative position jog.
 	/// Returns: Function returns a vector of the measured position of the machine after the movement is completed (or after it times out).
 	/// Notes:	
-	
+
 	IPort& my_port = my_mgr->Ports(0);	// Create a shortcut for the port
 	bool r_mode = settings.r_mode;
 
@@ -374,7 +374,7 @@ int machine::enable_nodes_f() {
 
 int machine::disable_nodes_f() {
 
-	/// Summary: 
+	/// Summary: Disables all nodes on the port
 	/// Params: 
 	/// Returns: 
 	/// Notes: 
@@ -402,7 +402,8 @@ int machine::disable_nodes_f() {
 
 int machine::home_position_f() {
 
-	/// Summary: 
+	/// Summary: Starts homing routine defined for each motor. Motors have to be set up to home in the correct directions using the
+	///				clearview software.
 	/// Params: 
 	/// Returns: 
 	/// Notes: 
@@ -411,49 +412,44 @@ int machine::home_position_f() {
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	//	//	NEED TO CHANGE HOMING OPERATION TO HOME LEADER-FOLLOWER SETS TOGETHER
 	//	//	OR TO HOME ALL NODES AT THE SAME TIME, BASICALLY AS A MOVE TO ORIGIN
+	//	//	THIS IS NOT CURRENTLY USED
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	printf("\n===== Homing All Axes =====\n");
+
 	try {
-		IPort& my_port = my_mgr->Ports(0);		// Create a shortcut for the port
-		int machine_num_axes = config.machine_num_axes;
+		IPort& my_port = my_mgr->Ports(0);									// Create a shortcut for the port
+		int machine_num_axes = config.machine_num_axes;						
 		std::vector<double> node_is_follower = config.node_is_follower;
-		for (size_t iAxis = 0; iAxis < machine_num_axes; iAxis++) {
+
+		for (size_t iAxis = 0; iAxis < machine_num_axes; iAxis++) {			// Home each axis together
 			printf("Homing Axis %d\n", iAxis);
-			for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
+			int lastnode = 0;
+
+			for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {	//
 				if (config.node_parent_axis[iNode] == iAxis) {
 					INode& the_node = my_port.Nodes(iNode);
 					if (the_node.Motion.Homing.HomingValid())
 					{
-						if (the_node.Motion.Homing.WasHomed())
-						{
-							printf("Node[%d] has already been homed, current position is: \t%8.0f \n", iNode, the_node.Motion.PosnMeasured.Value());
-							printf("Rehoming Node[%d]... \n", iNode);
-						}
-						else
-						{
-							printf("Node [%d] has not been homed.  Homing Node now...\n", iNode);
-						}
-						//Now we will home the Node
-
+						printf("Node [%d]: Homing now...\n", iNode);
 						the_node.Motion.Homing.Initiate();
-
-						double timeout = my_mgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
-																				// Basic mode - Poll until disabled
-						while (!the_node.Motion.Homing.WasHomed()) {
-							if (my_mgr->TimeStampMsec() > timeout) {
-								printf("Node[%d] did not complete homing:  \n\t -Ensure Homing settings have been defined through ClearView. \n\t -Check for alerts/Shutdowns \n\t -Ensure timeout is longer than the longest possible homing move.\n", iNode);
-								msg_user_f("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
-								return -2;
-							}
-						}
-						printf("Node[%d] completed homing\n", iNode);
+						lastnode = iNode;
 					}
 					else {
 						printf("Node[%d] has not had homing setup through ClearView.  The node will not be homed.\n", iNode);
 					}
 				}
 			}
+				//THIS NEEDS TO BE TESTED!!
+			double timeout = my_mgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
+			while (!my_port.Nodes(lastnode).Motion.Homing.WasHomed()) {
+				if (my_mgr->TimeStampMsec() > timeout) {
+					printf("Node[%d] did not complete homing:  \n\t -Ensure Homing settings have been defined through ClearView. \n\t -Check for alerts/Shutdowns \n\t -Ensure timeout is longer than the longest possible homing move.\n", lastnode);
+					msg_user_f("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
+					return -2;
+				}
+			}
+			//printf("Node[%d] completed homing\n", iNode);
 		}
 		current_position = measure_position_f();
 		return 1;
@@ -472,7 +468,7 @@ int machine::home_position_f() {
 
 int machine::open_ports_f() {
 
-	/// Summary: 
+	/// Summary: Searches for viable SC Hub Ports and opens the first one
 	/// Params: 
 	/// Returns: 
 	/// Notes: 
@@ -526,14 +522,16 @@ int machine::open_ports_f() {
 }
 
 void machine::close_ports_f() {
-	/// Summary: 
+
+	/// Summary: closes SC Hub port
 	/// Params: 
 	/// Returns: 
 	/// Notes: 
+	
 	printf("Closing Ports\n");
 	try {
 		my_mgr->PortsClose();
-	} 
+	}
 	catch (mnErr& theErr)
 	{
 		printf("Failed to close port(s)\n");
@@ -547,7 +545,12 @@ void machine::close_ports_f() {
 
 int machine::start_up_f() {
 
-	/// Summary: 
+	/// Summary: Combines general machine start-up functions into one function.
+	///			Loads mechanical configuration document
+	///			Opens SC Hub Ports
+	///			Enables the nodes
+	///			Will eventually home the axes
+	///			sets config
 	/// Params: 
 	/// Returns: 
 	/// Notes: 
@@ -614,7 +617,7 @@ int machine::start_up_f() {
 
 void machine::shut_down_f() {
 
-	/// Summary: 
+	/// Summary: Disables nodes and closes SC Hub port
 	/// Params: 
 	/// Returns: 
 	/// Notes: 

@@ -17,7 +17,12 @@ using std::cout;
 
 int CML_control_loop_f(machine my_machine) {
 
-	/// Summary: 
+	/// Summary: Main Commandline control loop of motor controller. On each loop it:
+	///							1. Prints the operation number
+	///							2. Prints the current position of the machine
+	///							3. Prompts the next input command
+	///							4. Waits for a response
+	///							5. Executes requested operation
 	/// Params: 
 	/// Returns: 
 	/// Notes: 
@@ -28,18 +33,22 @@ int CML_control_loop_f(machine my_machine) {
 	int op_num = 0;
 	std::vector<double> input_vec;
 	cout << "\n\n========== Begin Operation ==========";
+	// Keep looping until quit is requested
 	while (!quit) {
 		op_num += 1;
 		cin.clear();
 		command = 0;
 
-		printf("\n===== Operation #%i =====\n",op_num);
+		printf("\n===== Operation #%i =====\n", op_num);
 		if (!my_machine.settings.r_mode) {
 			print_vector_f(my_machine.current_position, "The current position is : ");
-		} else {
+		}
+		else {
 			my_machine.current_position = my_machine.measure_position_f();
 			print_vector_f(my_machine.current_position * my_machine.config.node_sign, "The current position is : ");
 		}
+
+		//Print operation menu
 		printf("Current velocity limit: %0.2f mm/s\n", my_machine.config.machine_velocity_limit);
 		cout << "Please input an operation number.\n";
 		cout << "0: Quit\n";
@@ -49,9 +58,9 @@ int CML_control_loop_f(machine my_machine) {
 		//cout << "4: Repeat last operation\n"
 		//cout << "4: Preset toolpaths\n";
 		//cout << "5: Machine Info\n";
-		//cout << "N: OPERATION\n";
+		//cout << "N: OPERATION NAME\n";
 
-		
+
 		cin >> command;	// Await command input
 
 		if (cin.fail()) {	//If the cin fails (i.e. a char is input when it expected int), ignore the rest of the input and clear the input stream.
@@ -60,20 +69,22 @@ int CML_control_loop_f(machine my_machine) {
 			cin.ignore(100, '\n');
 			continue;		// Go back to the command menu
 		}
+
+		// Switch statement handles all commands 
 		switch (command)
 		{
-		case 0:
+		case 0:	//Quit
 			quit = true;
 			break;
-		case 1:
+		case 1:	//Set Position
 			input_vec = user_input_vector_f("Please input the target position, separated by commas: ", my_machine.config.machine_num_axes);
 			my_machine.current_position = my_machine.move_linear_f(input_vec, true);
 			break;
-		case 2:
+		case 2:	//Job Position
 			input_vec = user_input_vector_f("Please input a jog distance, separated by commas: ", my_machine.config.machine_num_axes);
 			my_machine.current_position = my_machine.move_linear_f(input_vec, false);
 			break;
-		case 3:
+		case 3:	//Change Velocity Limit
 			cout << "Please enter a new velocity in mm/s:";
 			cin >> my_machine.config.machine_velocity_limit;
 			if (my_machine.config.machine_velocity_limit > my_machine.config.machine_velocity_max) {
