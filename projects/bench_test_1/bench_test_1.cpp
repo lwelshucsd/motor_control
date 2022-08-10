@@ -30,8 +30,11 @@ int CML_control_loop_f(machine my_machine) {
 
 	bool quit = false;
 	int command;
+	int last_command = 0;
 	int op_num = 0;
+	int selected_axis;
 	std::vector<double> input_vec;
+	std::vector<double> last_input_vec;
 	cout << "\n\n========== Begin Operation ==========";
 	// Keep looping until quit is requested
 	while (!quit) {
@@ -55,9 +58,11 @@ int CML_control_loop_f(machine my_machine) {
 		cout << "1: Change Position\n";
 		cout << "2: Linear Jog\n";
 		cout << "3: Change Velocity Limit\n";
-		//cout << "4: Repeat last operation\n"
-		//cout << "4: Preset toolpaths\n";
-		//cout << "5: Machine Info\n";
+		cout << "4: Home Axis\n";
+		cout << "5: No Command Currently Added (Will be 'Print Machine Info'\n";
+		//cout << "x: Repeat last operation\n"
+		//cout << "x: Preset toolpaths\n";
+		//cout << "x: Machine Info\n";
 		//cout << "N: OPERATION NAME\n";
 
 
@@ -93,6 +98,32 @@ int CML_control_loop_f(machine my_machine) {
 				break;
 			}
 			break;
+		case 4: //Repeat Last Command
+			cout << "Please select an axis.\n";
+			cout << "0: X\n";
+			cout << "1: Y\n";
+			cout << "2: Z\n";
+			cin >> selected_axis;	// Await command input
+			double homing_speed = 5;
+			switch (selected_axis) 
+			{
+			case 0:
+				my_machine.home_axis_f(0);
+				break;
+			case 1:
+				my_machine.home_axis_f(1);
+				break;
+			case 2:
+				my_machine.home_axis_f(2);
+				break;
+			default:
+				cout << "Invalid Axis\n";
+			}
+
+			break;
+		case 5: //Display Machine Info
+
+			break;
 		default:
 			cout << "That is not a valid command.\n";
 		}
@@ -108,7 +139,7 @@ int CML_control_loop_f(machine my_machine) {
 
 int main(int argc, char* argv[])
 {
-	msg_user_f("Motion Example starting. Press Enter to continue.");
+	msg_user_f("Test Tank starting. Press Enter to continue.");
 
 	machine my_machine;
 

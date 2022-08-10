@@ -20,7 +20,7 @@
 #define LONG_DELAY				500
 #define SHORT_DELAY				100
 #define TIME_TILL_TIMEOUT		100000	//The timeout used for homing(ms)
-#define ACC_LIM_CNTS_PER_SEC2	320000000
+//#define ACC_LIM_CNTS_PER_SEC2	640000000
 #define MAX_VEL_LIM				2000
 
 using namespace sFnd;
@@ -100,6 +100,7 @@ void machine::load_config_f(char delimiter) {
 		"machine_velocity_limit",
 		"machine_velocity_max",
 		"node_is_rotary_axis"
+		"homing_speed"
 	};
 
 	// Prep file for data parsing
@@ -156,6 +157,7 @@ void machine::load_config_f(char delimiter) {
 		config.machine_velocity_limit = stod(values[6]);
 		config.machine_velocity_max = stod(values[7]);
 		config.node_is_rotary_axis = push_back_string_f(config.node_is_rotary_axis, values[8], ',');
+		config.homing_speed = stod(values[9]);
 	}
 
 	// Calculate derived config variables that are not needed in .txt file
@@ -226,7 +228,6 @@ std::vector<double> machine::measure_position_f() {
 	return position;
 }
 
-//change name to "linear"
 std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool target_is_absolute) {
 
 	/// Summary: Abstracts the triangular node.motion.movePosnStart() to a multi-axis system, using trigger groups to enforce 
@@ -400,7 +401,19 @@ int machine::disable_nodes_f() {
 	}
 };
 
-int machine::home_position_f() {
+bool machine::check_axis_home(std::vector<size_t> axis_nodes) {
+	IPort& my_port = my_mgr->Ports(0);	// Create a shortcut for the port
+
+	for (int i = 0; i < axis_nodes.size(); i++) {
+		size_t iNode = axis_nodes[i];
+		if (!my_port.Nodes(iNode).Motion.Homing.WasHomed()) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int machine::home_axis_f(int axis_id) {
 
 	/// Summary: Starts homing routine defined for each motor. Motors have to be set up to home in the correct directions using the
 	///				clearview software.
@@ -415,42 +428,101 @@ int machine::home_position_f() {
 	//	//	THIS IS NOT CURRENTLY USED
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	//	//////////////////////////////////////////////////////////////////////////////////////////////////
-	printf("\n===== Homing All Axes =====\n");
+	printf("\n===== Homing Axis =====\n");
 
 	try {
 		IPort& my_port = my_mgr->Ports(0);									// Create a shortcut for the port
 		int machine_num_axes = config.machine_num_axes;						
 		std::vector<double> node_is_follower = config.node_is_follower;
+		std::vector<double> node_axis = config.node_parent_axis;
+		double divisor = 10;
 
-		for (size_t iAxis = 0; iAxis < machine_num_axes; iAxis++) {			// Home each axis together
-			printf("Homing Axis %d\n", iAxis);
-			int lastnode = 0;
 
-			for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {	//
-				if (config.node_parent_axis[iNode] == iAxis) {
-					INode& the_node = my_port.Nodes(iNode);
-					if (the_node.Motion.Homing.HomingValid())
-					{
-						printf("Node [%d]: Homing now...\n", iNode);
-						the_node.Motion.Homing.Initiate();
-						lastnode = iNode;
-					}
-					else {
-						printf("Node[%d] has not had homing setup through ClearView.  The node will not be homed.\n", iNode);
-					}
-				}
+		printf("Homing Axis %d\n", axis_id);
+		int num_axis_nodes = std::count(node_is_follower.begin(), node_is_follower.end(), axis_id);
+		if (num_axis_nodes == 1) {	//MIGHT BE POSSIBLE TO NOT USE THIS AT ALL
+			int iNode = std::distance(node_axis.begin(), std::find(node_axis.begin(), node_axis.end(), axis_id));// index of node
+			INode& the_node = my_port.Nodes(iNode);
+			
+			// THIS USES BUILT IN CLEARVIEW HOMING - CONSIDER CHANGING TO CUSTOM HOMING OPERATION
+			if (the_node.Motion.Homing.HomingValid())
+			{
+				printf("Node [%d]: Homing now...\n", iNode);
+				the_node.Motion.Homing.Initiate();
 			}
-				//THIS NEEDS TO BE TESTED!!
+			else {
+				printf("Node[%d] has not had homing setup through ClearView.  The node will not be homed.\n", iNode);
+			}
 			double timeout = my_mgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
-			while (!my_port.Nodes(lastnode).Motion.Homing.WasHomed()) {
+			while (!my_port.Nodes(iNode).Motion.Homing.WasHomed()) {
 				if (my_mgr->TimeStampMsec() > timeout) {
-					printf("Node[%d] did not complete homing:  \n\t -Ensure Homing settings have been defined through ClearView. \n\t -Check for alerts/Shutdowns \n\t -Ensure timeout is longer than the longest possible homing move.\n", lastnode);
+					printf("Node[%d] did not complete homing:  \n\t -Ensure Homing settings have been defined through ClearView. \n\t -Check for alerts/Shutdowns \n\t -Ensure timeout is longer than the longest possible homing move.\n", iNode);
 					msg_user_f("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
 					return -2;
 				}
 			}
-			//printf("Node[%d] completed homing\n", iNode);
+			return 1;
 		}
+		else {
+			//something for n>1 node axes
+			size_t lastnode = -1;
+			size_t leader = -1;
+			bool leader_home_found = 0;
+			std::vector<size_t> axis_nodes;
+			double posn = 0;
+			for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
+				if (config.node_parent_axis[iNode] == axis_id) {
+
+				double node_machine_velocity_limit = config.homing_speed / config.node_lead_per_cnt[iNode];
+				my_port.Nodes(iNode).Motion.VelLimit = -abs(node_machine_velocity_limit);
+
+				// Set up trigger
+				my_port.Nodes(iNode).Motion.Adv.TriggerGroup(1);	// add all to same trigger group
+				my_port.Nodes(iNode).Motion.Adv.MoveVelStart(node_machine_velocity_limit, true);
+				my_port.Nodes(iNode).Motion.Homing.SignalInvalid();
+				axis_nodes.push_back(iNode);
+				lastnode = iNode;
+				}
+			}
+			my_port.Nodes(lastnode).Motion.Adv.TriggerMovesInMyGroup();	// Trigger group
+
+			while (!check_axis_home(axis_nodes)) {
+				for (int i = 0; i < axis_nodes.size(); i++) {
+					size_t iNode = axis_nodes[i];
+					if (!leader_home_found && my_port.Nodes(iNode).Status.RT.Value().cpm.InA) {
+						my_port.Nodes(iNode).Motion.NodeStop(STOP_TYPE_ABRUPT);
+						printf("Node %i Input A is asserted \n", iNode);
+						leader = iNode;
+						leader_home_found = 1;
+						my_port.Nodes(iNode).Motion.Homing.SignalComplete();
+						posn = my_port.Nodes(iNode).Motion.PosnMeasured;
+						my_port.Nodes(iNode).Motion.AddToPosition(-posn);
+						continue;
+					}
+					else if (leader_home_found && !my_port.Nodes(iNode).Status.RT.Value().cpm.InA) {
+						double node_machine_velocity_limit = (config.homing_speed/divisor) / config.node_lead_per_cnt[iNode];
+						my_port.Nodes(iNode).Motion.VelLimit = -abs(node_machine_velocity_limit);
+						my_port.Nodes(iNode).Motion.Adv.MoveVelStart(node_machine_velocity_limit, false);
+
+						continue;
+					}
+					else if (leader_home_found && my_port.Nodes(iNode).Status.RT.Value().cpm.InA) {
+						my_port.Nodes(iNode).Motion.NodeStop(STOP_TYPE_ABRUPT);
+						printf("Node %i Input A is asserted \n", iNode);
+						my_port.Nodes(iNode).Motion.Homing.SignalComplete();
+						posn = my_port.Nodes(iNode).Motion.PosnMeasured;
+						my_port.Nodes(iNode).Motion.AddToPosition(-posn);
+						continue;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			
+		}
+
+		printf("Completed homing\n");
 		current_position = measure_position_f();
 		return 1;
 	}

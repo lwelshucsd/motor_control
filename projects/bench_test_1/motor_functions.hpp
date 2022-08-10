@@ -28,6 +28,7 @@ private:
 	int disable_nodes_f();
 	int set_config_f();
 	void close_ports_f();
+	bool check_axis_home(std::vector<size_t> node_axis_ids);
 public:
 	struct mech_config
 	{
@@ -42,15 +43,16 @@ public:
 		double machine_velocity_max;
 		double machine_num_axes;
 		double machine_accel_limit;
+		double homing_speed;
 	} config;
 	struct machine_settings {
 		bool r_mode = false;
 	} settings;
 	std::vector<double> current_position;
 	//void setSpeed();
-	int home_position_f();
 	std::vector<double> measure_position_f();
 	std::vector<double> move_linear_f(std::vector<double> input_vec, bool target_is_absolute);
+	int home_axis_f(int axis_id);
 	int start_up_f();
 	void shut_down_f();
 };
