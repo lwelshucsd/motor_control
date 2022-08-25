@@ -10,6 +10,7 @@
 /*----------------------------- Include Files ------------------------------*/
 #include "general_functions.hpp"
 #include <iostream>
+#include <fstream>
 /*--------------------------- External Variables ---------------------------*/
 /*----------------------------- Module Defines -----------------------------*/
 /*------------------------------ Module Types ------------------------------*/
@@ -128,6 +129,15 @@ std::vector<double> user_input_vector_f(std::string prompt, int expected_size) {
 			std::cout << "\nSize of input vector does not match the number of axes in the system: " << expected_size;
 			std::cout << "\nPlease try again.";
 		}
+	}
+}
+
+void save_array_f(std::vector<std::vector<double>> input_array) {
+	std::ofstream ofs("test.txt", std::ofstream::out);
+	for (auto& row : input_array) {
+		for (auto col : row)
+			ofs << col << ',';
+		ofs << '\n';
 	}
 }
 /*----------------------------- Test Harness -------------------------------*/

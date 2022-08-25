@@ -1,9 +1,8 @@
 //Required include files
-#include <iostream>
 #include <Windows.h>
+#include <iostream>
 #include "general_functions.hpp"
-#include "motor_functions.hpp"
-
+#include "test_tank_functions.hpp"
 using namespace sFnd;
 using std::cin;
 using std::cout;
@@ -41,15 +40,8 @@ int CML_control_loop_f(machine my_machine) {
 		op_num += 1;
 		cin.clear();
 		command = 0;
-
 		printf("\n===== Operation #%i =====\n", op_num);
-		if (!my_machine.settings.r_mode) {
-			print_vector_f(my_machine.current_position, "The current position is : ");
-		}
-		else {
-			my_machine.current_position = my_machine.measure_position_f();
-			print_vector_f(my_machine.current_position * my_machine.config.node_sign, "The current position is : ");
-		}
+		print_vector_f(my_machine.current_position, "The current position is : ");
 
 		//Print operation menu
 		printf("Current velocity limit: %0.2f mm/s\n", my_machine.config.machine_velocity_limit);
@@ -104,7 +96,6 @@ int CML_control_loop_f(machine my_machine) {
 			cout << "1: Y\n";
 			cout << "2: Z\n";
 			cin >> selected_axis;	// Await command input
-			double homing_speed = 5;
 			switch (selected_axis) 
 			{
 			case 0:
@@ -140,6 +131,7 @@ int CML_control_loop_f(machine my_machine) {
 int main(int argc, char* argv[])
 {
 	msg_user_f("Test Tank starting. Press Enter to continue.");
+
 
 	machine my_machine;
 

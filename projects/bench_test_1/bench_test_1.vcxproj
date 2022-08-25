@@ -85,7 +85,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\inc\inc-pub;..\..\inc</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\ThreeSpace_API_C_3.0.6;..\..\inc\inc-pub;..\..\inc</IncludePath>
     <CustomBuildBeforeTargets>Link</CustomBuildBeforeTargets>
     <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)$(Platform)\$(Configuration)\intermediate\</IntDir>
@@ -128,8 +128,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sFoundation20.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\ThreeSpace_API_C_3.0.6;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sFoundation20.lib;TSS_API_64.lib;TSS_API_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
       <Command>"$(ProjectDir)..\sFoundationCopy.bat" $(PlatformName) $(ConfigurationName) "$(OutDir)"</Command>
@@ -212,16 +212,17 @@
   <ItemGroup>
     <ClCompile Include="bench_test_1.cpp" />
     <ClCompile Include="general_functions.cpp" />
-    <ClCompile Include="motor_functions.cpp" />
+    <ClCompile Include="test_tank_functions.cpp" />
     <ClCompile Include="vector_operators.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="mech_config.txt" />
     <Text Include="README.TXT" />
+    <Text Include="Win32\Debug\mech_config.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_functions.hpp" />
-    <ClInclude Include="motor_functions.hpp" />
+    <ClInclude Include="test_tank_functions.hpp" />
+    <ClInclude Include="ThreeSpace_API_C_3.0.6\threespace_api_export.h" />
     <ClInclude Include="vector_operators.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

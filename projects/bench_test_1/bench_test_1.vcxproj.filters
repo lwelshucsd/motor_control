@@ -4,15 +4,16 @@
     <ClCompile Include="bench_test_1.cpp" />
     <ClCompile Include="vector_operators.cpp" />
     <ClCompile Include="general_functions.cpp" />
-    <ClCompile Include="motor_functions.cpp" />
+    <ClCompile Include="test_tank_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />
-    <Text Include="mech_config.txt" />
+    <Text Include="Win32\Debug\mech_config.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vector_operators.hpp" />
     <ClInclude Include="general_functions.hpp" />
-    <ClInclude Include="motor_functions.hpp" />
+    <ClInclude Include="ThreeSpace_API_C_3.0.6\threespace_api_export.h" />
+    <ClInclude Include="test_tank_functions.hpp" />
   </ItemGroup>
 </Project>

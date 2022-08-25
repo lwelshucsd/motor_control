@@ -99,7 +99,7 @@ void machine::load_config_f(char delimiter) {
 		"machine_accel_limit",
 		"machine_velocity_limit",
 		"machine_velocity_max",
-		"node_is_rotary_axis"
+		"node_is_rotary_axis",
 		"homing_speed"
 	};
 
@@ -239,7 +239,6 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 	/// Notes:	
 
 	IPort& my_port = my_mgr->Ports(0);	// Create a shortcut for the port
-	bool r_mode = settings.r_mode;
 
 	// Initialize position vectors to be used in velocity calculations
 	std::vector<double> end_pos;
@@ -262,48 +261,37 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 	double node_input_cnts;
 	double node_machine_velocity_limit;
 
+	// Set up trigger group  & velocity for all nodes
+	for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
+		node_axis = config.node_parent_axis[iNode];
 
-	if (r_mode) {
-		printf("Simulating movement.\n");
-		Sleep(SHORT_DELAY);							// Update to incorporate speed and calculate simulated time
-		print_vector_f(current_pos, " ");
-		std::cout << "\n";
-		print_vector_f(input_vec, " ");
-		end_pos = (current_pos | (!target_is_absolute)) + input_vec;
-		return end_pos;
+		// Convert velocity to counts/s and apply limit
+		node_machine_velocity_limit = vel_vec[node_axis] / lead_per_cnt[iNode];
+		my_port.Nodes(iNode).Motion.VelLimit = abs(node_machine_velocity_limit);
+
+		//Convert distance to counts and set up trigger
+		node_input_cnts = input_vec[node_axis] / lead_per_cnt[iNode] * node_sign[iNode];
+		my_port.Nodes(iNode).Motion.Adv.TriggerGroup(1);	// add all to same trigger group
+		my_port.Nodes(iNode).Motion.Adv.MovePosnStart(node_input_cnts, target_is_absolute, true);
 	}
-	else {
-		// Set up trigger group  & velocity for all nodes
-		for (size_t iNode = 0; iNode < my_port.NodeCount(); iNode++) {
-			node_axis = config.node_parent_axis[iNode];
+	my_port.Nodes(0).Motion.Adv.TriggerMovesInMyGroup();	// Trigger group
 
-			// Convert velocity to counts/s and apply limit
-			node_machine_velocity_limit = vel_vec[node_axis] / lead_per_cnt[iNode];
-			my_port.Nodes(iNode).Motion.VelLimit = abs(node_machine_velocity_limit);
 
-			//Convert distance to counts and set up trigger
-			node_input_cnts = input_vec[node_axis] / lead_per_cnt[iNode] * node_sign[iNode];
-			my_port.Nodes(iNode).Motion.Adv.TriggerGroup(1);	// add all to same trigger group
-			my_port.Nodes(iNode).Motion.Adv.MovePosnStart(node_input_cnts, target_is_absolute, true);
+	double timeout = my_mgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //define a timeout in case the node is unable to enable or takes too long
+	while (!move_is_done_f(my_port)) {
+		//printf("%00008.2f   ", my_mgr->TimeStampMsec() - timeout + TIME_TILL_TIMEOUT);
+		//print_vector_f(measurePosn(), "");
+		if (my_mgr->TimeStampMsec() > timeout) {
+			printf("Error: timed out waiting for move to complete\n");
+			msg_user_f("press any key to continue."); //pause so the user can see the error message; waits for user to press a key
+			my_port.NodeStop();	// Stops the nodes at their current position
+			return measure_position_f();
 		}
-		my_port.Nodes(0).Motion.Adv.TriggerMovesInMyGroup();	// Trigger group
-
-
-		double timeout = my_mgr->TimeStampMsec() + TIME_TILL_TIMEOUT; //define a timeout in case the node is unable to enable or takes too long
-		while (!move_is_done_f(my_port)) {
-			//printf("%00008.2f   ", my_mgr->TimeStampMsec() - timeout + TIME_TILL_TIMEOUT);
-			//print_vector_f(measurePosn(), "");
-			if (my_mgr->TimeStampMsec() > timeout) {
-				printf("Error: timed out waiting for move to complete\n");
-				msg_user_f("press any key to continue."); //pause so the user can see the error message; waits for user to press a key
-				my_port.NodeStop();	// Stops the nodes at their current position
-				return measure_position_f();
-			}
-		}
-
-		Sleep(SHORT_DELAY);
-		end_pos = measure_position_f();	// Measure ending position of machine to return
 	}
+
+	Sleep(SHORT_DELAY);
+	end_pos = measure_position_f();	// Measure ending position of machine to return
+	
 	return end_pos;
 }
 
@@ -566,7 +554,6 @@ int machine::open_ports_f() {
 			my_mgr->ComHubPort(port_count, comHubPorts[port_count].c_str()); 	//define the first SC Hub port (port 0) to be associated 
 											// with COM portnum (as seen in device manager)
 		}
-		bool r_mode = false; // assume that there will be a hub with motors
 
 		if (port_count <= 0) {
 		}
@@ -633,36 +620,16 @@ int machine::start_up_f() {
 	size_t port_count = open_ports_f();
 
 	if (port_count <= 0) {
-		//Initialize some remote mode thing
-
-		// If there is no hub, either quit the program or enable remote work mode.
-		printf("Unable to locate SC hub port, enable remote mode?\n");
-		char r_modeChar;
-		std::cout << "y/n?:";
-		std::cin >> r_modeChar; //y/n input
-		std::cin.clear();
-		std::cin.ignore(100, '\n');
-		if (r_modeChar == 'y' || r_modeChar == 'Y') {
-			settings.r_mode = true;
-			printf("Remote Work Mode enabled.\n");
-			printf("Commands will be simulated, but no attempt to pass the command over USB will be made.\n");
-			port_count = 1;
-			return 1;
-		}
-		else if (r_modeChar == 'n' || r_modeChar == 'N') {
-			msg_user_f("Quitting program.\nPress any key to continue.");//waits for user to press a key
-			return 0;  //This terminates the main program
-		}
-		else {
-			msg_user_f("Inavlid response. Quitting program.\nPress any key to continue."); //pause so the user can see the error message; waits for user to press a key
-			return 0;  //This terminates the main program
-		}
+		// If there is no hub, quit the program.
+		printf("Unable to locate SC hub port. Quitting Program\n");
+		msg_user_f("Press any key to continue.");//waits for user to press a key
+		return 0;  //This terminates the main program
 	}
 	else {
 		try {
-			//This section initializes the motors and tries to home them.
-			//Once the code gets past this point, it can be assumed that the Port has been opened without issue
-			//Now we can get a reference to our port object which we will use to access the node objects
+			// This section initializes the motors and tries to home them.
+			// Once the code gets past this point, it can be assumed that the Port has been opened without issue
+			// Now we can get a reference to our port object which we will use to access the node objects
 			int res = enable_nodes_f();
 			if (res != 1) { return res; }
 

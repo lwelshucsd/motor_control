@@ -26,6 +26,6 @@
 char msg_user_f(const char* msg);
 void print_vector_f(std::vector<double> const& a, std::string comment);
 std::vector<double> user_input_vector_f(std::string prompt, int expected_size);
-
+void save_array_f(std::vector<std::vector<double>> input_array);
 /*------------------------------ End of file -------------------------------*/
 #endif /* MOTOR_FUNCTIONS_HPP_ */

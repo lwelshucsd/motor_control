@@ -14,7 +14,6 @@
 #include "pubSysCls.h"	
 #include <vector>
 #include "vector_operators.hpp"
-
 /*-------------------------------- Defines ---------------------------------*/
 
 /*--------------------------------- Types ----------------------------------*/
@@ -46,7 +45,7 @@ public:
 		double homing_speed;
 	} config;
 	struct machine_settings {
-		bool r_mode = false;
+		bool remote_mode = false;
 	} settings;
 	std::vector<double> current_position;
 	//void setSpeed();
