@@ -2,10 +2,11 @@
  Module
 	motor_funcitons.cpp
  Description
-	This is a set of funcitons utilizing the clearpath sFoundation motor
+	This is a set of functions utilizing the Clearpath sFoundation motor
 	control library. This library is intended to abstract the node-based
 	functions in sFoundation to work on a machine level with an arbitrary
-	number of axes.
+	number of axes and an arbitrary number of nodes per axis.
+	It also incorporates Accelerometer Feedback from a YEI 3-space sensor.
 
 *****************************************************************************/
 
@@ -16,7 +17,6 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <chrono>
 
 
 #define LONG_DELAY				500
@@ -27,11 +27,7 @@
 
 using namespace sFnd;
 namespace fs = std::filesystem;
-/*--------------------------- External Variables ---------------------------*/
-/*----------------------------- Module Defines -----------------------------*/
-/*------------------------------ Module Types ------------------------------*/
-/*---------------------------- Module Variables ----------------------------*/
-/*--------------------- Module Function Prototypes -------------------------*/
+
 /*------------------------------ Module Code -------------------------------*/
 bool move_is_done_f(class IPort& SC4_port) {
 
@@ -83,77 +79,11 @@ std::vector<double> push_back_string_f(std::vector<double> input_vector, std::st
 
 // Machine Specific functions
 void machine::load_config_f(char delimiter) {
-	YEI_port.port_name = new char[64];
-	TSS_ERROR error = TSS_NO_ERROR;
 
-	printf("====Creating a Three Space Device from Search====\n");
-	tss_findSensorPorts(TSS_FIND_ALL_KNOWN ^ TSS_DONGLE);
-
-	error = tss_getNextSensorPort(YEI_port.port_name, &YEI_port.device_type, &YEI_port.connection_Type);
-	if (error == TSS_NO_ERROR)
-	{
-		error = tss_createSensor(YEI_port.port_name, &YEI_device_id);
-
-		if (error)
-		{
-			printf("Failed to create TSS Sensor on %s!\n", YEI_port.port_name);
-			tss_deinitAPI();
-			printf("Finished press Enter to continue");
-			getchar();
-		}
-		else
-		{
-			printf("====Starting Streaming====\n");
-			error = tss_sensor_startStreamingWired(YEI_device_id, TSS_STREAM_CORRECTED_SENSOR_DATA, 500, TSS_STREAM_DURATION_INFINITE, 0);
-			error = tss_sensor_enableTimestampsWired(YEI_device_id);
-
-			Sleep(10);
-			TSS_Stream_Packet packet;
-			std::vector<std::vector<double>> threeSpaceData;
-			using namespace std::chrono;
-			long long start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-
-			for (int i = 0; i < 10; i++)
-			{
-				long long ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-				ms = ms - start;
-				threeSpaceData.push_back({ double(ms) });
-				Sleep(50);
-				printf("Press Enter to get next packet.\n");
-				error = tss_sensor_getLastStreamingPacket(YEI_device_id, &packet);
-				printf("Gyro	: (%.03f,%.03f,%.03f)\n", packet.correctedSensorData[0], packet.correctedSensorData[1], packet.correctedSensorData[2]);
-				printf("Accel	: (%.03f,%.03f,%.03f)\n", packet.correctedSensorData[3], packet.correctedSensorData[4], packet.correctedSensorData[5]);
-				printf("Magnet	: (%.03f,%.03f,%.03f)\n", packet.correctedSensorData[6], packet.correctedSensorData[7], packet.correctedSensorData[8]);
-				for (int j = 0; j < 9; j++) {
-					//threeSpaceData[j][i] = packet.correctedSensorData[j];
-					threeSpaceData[i].push_back(packet.correctedSensorData[j]);
-				}
-			}
-
-			save_array_f(threeSpaceData);
-			tss_sensor_stopStreamingWired(YEI_device_id);
-
-			tss_removeSensor(YEI_device_id);
-		}
-	}
-	else
-	{
-		printf("Failed to get the port!\n");
-		tss_deinitAPI();
-		printf("Finished press Enter to continue");
-		getchar();
-	}
-
-	tss_deinitAPI();
-
-	printf("Finished press Enter to continue");
-	getchar();
 	/// Summary: Loads the mechanical configuration data of the machine into the machine.config data structure
 	/// Params: delimiter: The character separating the nnput config data from the data names
 	/// Returns: Void
 	/// Notes: 
-	///		(08/30/21) - Building way to load mechanical config from .cfg file. -TH
-	///		(11/12/21) - Able to load configs with set variables frm .txt file, but not thoroughly tested. -TH
 
 	// Include the name of all expected config file variables here
 	std::vector<std::string> var_names = {
@@ -357,7 +287,7 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 
 	Sleep(SHORT_DELAY);
 	end_pos = measure_position_f();	// Measure ending position of machine to return
-	
+
 	return end_pos;
 }
 
@@ -400,7 +330,7 @@ int machine::enable_nodes_f() {
 			//At this point the node is enabled
 			//printf("Node[%d] enabled.\n", int(iNode));
 			double timeout = SC4_mgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
-			while (!the_node.Motion.IsReady()) {								//This will loop checking on the Real time values of the node's Ready status
+			while (!the_node.Motion.IsReady()) {							//This will loop checking on the Real time values of the node's Ready status
 				if (SC4_mgr->TimeStampMsec() > timeout) {
 					printf("Error: Timed out waiting for Node %d to enable\n", iNode);
 					msg_user_f("Press any key to continue."); //pause so the user can see the error message; waits for user to press a key
@@ -455,39 +385,38 @@ int machine::disable_nodes_f() {
 	}
 };
 
-
 int machine::home_axis_f(int axis_id) {
 
-	/// Summary: Starts homing routine defined for each motor. Motors have to be set up to home in the correct directions using the
-	///				clearview software.
-	/// Params: 
-	/// Returns: 
-	/// Notes: 
+	/// Summary: Starts homing routine defined for each motor. Single-node axes have to be set up to home in the correct 
+	///				directions using the clearview software. Multi-node axes are separately homed using a custom method, 
+	///				where a leader is found at the first limit switch detected and other nodes are slowed until their 
+	///				switch is found. 
+	/// Params:		axis_id: numerical id of axis intended to home
+	/// Returns:	Int of -2 to imply fialure, 1 to imply success
+	/// Notes:		(Aug 26, 2022) THIS HAS ONLY BEEN TESTED WITH UP TO 2-NODE AXIS. UNKNOWN IF THIS WORKS WITH AXES OF 3+ NODES -TH
 
-	//	//////////////////////////////////////////////////////////////////////////////////////////////////
-	//	//////////////////////////////////////////////////////////////////////////////////////////////////
-	//	//	NEED TO CHANGE HOMING OPERATION TO HOME LEADER-FOLLOWER SETS TOGETHER
-	//	//	OR TO HOME ALL NODES AT THE SAME TIME, BASICALLY AS A MOVE TO ORIGIN
-	//	//	THIS IS NOT CURRENTLY USED
-	//	//////////////////////////////////////////////////////////////////////////////////////////////////
-	//	//////////////////////////////////////////////////////////////////////////////////////////////////
 	printf("\n===== Homing Axis =====\n");
 
 	try {
-		IPort& SC4_port = SC4_mgr->Ports(0);									// Create a shortcut for the port
-		const int machine_num_axes = config.machine_num_axes;						
+		IPort& SC4_port = SC4_mgr->Ports(0);	// Create a shortcut for the port
+
+		// Useful Variable Shortcuts
+		const int machine_num_axes = config.machine_num_axes;
 		std::vector<double> node_is_follower = config.node_is_follower;
 		std::vector<double> node_axis = config.node_parent_axis;
-		double divisor = 10;
+		double divisor = 10;	// Speed reduction factor for multi-axis homing.
 
 
 		printf("Homing Axis %d\n", axis_id);
-		int num_axis_nodes = std::count(node_axis.begin(), node_axis.end(), axis_id);
-		if (num_axis_nodes == 1) {	//MIGHT BE POSSIBLE TO NOT USE THIS AT ALL
-			int iNode = std::distance(node_axis.begin(), std::find(node_axis.begin(), node_axis.end(), axis_id));// index of node
-			INode& the_node = SC4_port.Nodes(iNode);
-			
-			// THIS USES BUILT IN CLEARVIEW HOMING - CONSIDER CHANGING TO CUSTOM HOMING OPERATION
+
+		int num_axis_nodes = std::count(node_axis.begin(), node_axis.end(), axis_id);	// Count the number of nodes on the axis
+
+		if (num_axis_nodes == 1) {
+			// Single-node axes can simply use built-in clearpath homing methods
+
+			int iNode = std::distance(node_axis.begin(), std::find(node_axis.begin(), node_axis.end(), axis_id)); // index of node
+			INode& the_node = SC4_port.Nodes(iNode);	// shortcut to node
+
 			if (the_node.Motion.Homing.HomingValid())
 			{
 				printf("Node [%d]: Homing now...\n", iNode);
@@ -495,8 +424,9 @@ int machine::home_axis_f(int axis_id) {
 			}
 			else {
 				printf("Node[%d] has not had homing setup through ClearView.  The node will not be homed.\n", iNode);
-				return(1);
+				return 1;
 			}
+
 			double timeout = SC4_mgr->TimeStampMsec() + TIME_TILL_TIMEOUT;	//define a timeout in case the node is unable to enable
 			while (!SC4_port.Nodes(iNode).Motion.Homing.WasHomed()) {
 				if (SC4_mgr->TimeStampMsec() > timeout) {
@@ -505,44 +435,52 @@ int machine::home_axis_f(int axis_id) {
 					return -2;
 				}
 			}
+
 			printf("Completed homing\n");
 			current_position = measure_position_f();
 			return 1;
 		}
-		else {
-			//something for n>1 node axes
-			size_t lastnode = -1;
-			size_t leader = -1;
-			bool leader_home_found = 0;
-			std::vector<int> axis_nodes;
-			std::vector<bool> was_homed;
-			double posn = 0;
+		else {	//MULTI-NODE AXES
+
+			size_t lastnode = -1;			// node id of last used node
+			size_t leader = -1;				// node id of first node homed
+			bool leader_home_found = 0;		// bool true if leader has been found
+			std::vector<int> axis_nodes;	// list of ids of nodes on axis
+			std::vector<bool> was_homed;	// list of bool if node has been homed
+			double posn = 0;				// position on axis for adjusting zero point
+
+			// Prep triggered velocity move for all nodes on axis
 			for (size_t iNode = 0; iNode < SC4_port.NodeCount(); iNode++) {
 				if (config.node_parent_axis[iNode] == axis_id) {
 
-				double node_machine_velocity_limit = config.homing_speed / config.node_lead_per_cnt[iNode] * config.node_sign[iNode];
-				SC4_port.Nodes(iNode).Motion.VelLimit = abs(node_machine_velocity_limit);
+					// Set Velocity Limits for homing
+					double node_machine_velocity_limit = config.homing_speed / config.node_lead_per_cnt[iNode] * config.node_sign[iNode];
+					SC4_port.Nodes(iNode).Motion.VelLimit = abs(node_machine_velocity_limit);
 
-				// Set up trigger
-				SC4_port.Nodes(iNode).Motion.Adv.TriggerGroup(1);	// add all to same trigger group
-				SC4_port.Nodes(iNode).Motion.Adv.MoveVelStart(-node_machine_velocity_limit, true);
-				SC4_port.Nodes(iNode).Motion.Homing.SignalInvalid();
-				axis_nodes.push_back(iNode);
-				was_homed.push_back(false);
-				lastnode = iNode;
+					// Set up trigger
+					SC4_port.Nodes(iNode).Motion.Adv.TriggerGroup(1);	// add all to same trigger group
+					SC4_port.Nodes(iNode).Motion.Adv.MoveVelStart(-node_machine_velocity_limit, true);
+					SC4_port.Nodes(iNode).Motion.Homing.SignalInvalid();
+					axis_nodes.push_back(iNode);
+					was_homed.push_back(false);
+					lastnode = iNode;
 				}
 			}
 			SC4_port.Nodes(lastnode).Motion.Adv.TriggerMovesInMyGroup();	// Trigger group
 
+			// Read limit switches and poll for homed nodes
 			while (std::any_of(was_homed.begin(), was_homed.end(), [](bool i) { return !i; })) {
-				for (int i = 0; i < axis_nodes.size(); i++) {
+				for (int i = 0; i < axis_nodes.size(); i++) {	//For each node on axis
 					size_t iNode = axis_nodes[i];
-					if (SC4_port.Nodes(iNode).Motion.Homing.WasHomed() || was_homed[i]) {
+					if (SC4_port.Nodes(iNode).Motion.Homing.WasHomed() || was_homed[i]) {	// Skip if node was homed
+						// (Aug 26, 2022) I do not know why it needs the ...Homing.WasHomed() condition, since this is not
+						// really updated, as far as I can tell, but it does not work without it. -TH
 						continue;
 					}
 					else if (!leader_home_found && SC4_port.Nodes(iNode).Status.RT.Value().cpm.InA) {
-						SC4_port.Nodes(iNode).Motion.NodeStop(STOP_TYPE_ABRUPT);
-						leader = iNode;
+						// NEW LEADER FOUND
+						SC4_port.Nodes(iNode).Motion.NodeStop(STOP_TYPE_ABRUPT);	// Stop Node
+						leader = iNode;												// Define Node as leader
 						leader_home_found = true;
 						SC4_port.Nodes(iNode).Motion.Homing.SignalComplete();
 						was_homed[i] = true;
@@ -551,12 +489,14 @@ int machine::home_axis_f(int axis_id) {
 						continue;
 					}
 					else if (leader_home_found && !SC4_port.Nodes(iNode).Status.RT.Value().cpm.InA) {
-						double node_machine_velocity_limit = (config.homing_speed/divisor) / config.node_lead_per_cnt[iNode];
+						// Leader has been found, but this node is not activating the limit switch yet, reduce its speed
+						double node_machine_velocity_limit = (config.homing_speed / divisor) / config.node_lead_per_cnt[iNode];
 						SC4_port.Nodes(iNode).Motion.VelLimit = abs(node_machine_velocity_limit);
 						SC4_port.Nodes(iNode).Motion.Adv.MoveVelStart(-node_machine_velocity_limit, false);
 						continue;
 					}
 					else if (leader_home_found && SC4_port.Nodes(iNode).Status.RT.Value().cpm.InA) {
+						// Follower limit switch activated, stop node
 						SC4_port.Nodes(iNode).Motion.NodeStop(STOP_TYPE_ABRUPT);
 						SC4_port.Nodes(iNode).Motion.Homing.SignalComplete();
 						was_homed[i] = true;
@@ -570,13 +510,16 @@ int machine::home_axis_f(int axis_id) {
 					}
 				}
 			}
-			
+
+			//All nodes have been homed, move nodes by some offset
 			std::vector<double> offset_distance(config.machine_num_axes, 0.0);
 			offset_distance[axis_id] = 25.4;
 			double prev_limit = config.machine_velocity_limit;
 			config.machine_velocity_limit = 25.4;
 			move_linear_f(offset_distance, false);
-			config.machine_velocity_limit = prev_limit;
+			config.machine_velocity_limit = prev_limit;	// Preserves previous velocity limit
+
+			// Set each node's zero point to its current position
 			for (size_t iNode = 0; iNode < SC4_port.NodeCount(); iNode++) {
 				if (config.node_parent_axis[iNode] == axis_id) {
 					posn = SC4_port.Nodes(iNode).Motion.PosnMeasured;
@@ -606,7 +549,10 @@ int machine::open_ports_f() {
 	/// Summary: Searches for viable SC Hub Ports and opens the first one
 	/// Params: 
 	/// Returns: 
-	/// Notes: 
+	/// Notes: thirth@ucsd.edu
+
+	accelerometer YEI;
+	YEI.initialize_f();
 
 	size_t port_count = 0;
 	std::vector<std::string> comHubPorts;
@@ -660,7 +606,7 @@ void machine::close_ports_f() {
 	/// Params: 
 	/// Returns: 
 	/// Notes: 
-	
+
 	printf("Closing Ports\n");
 	try {
 		SC4_mgr->PortsClose();

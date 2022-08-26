@@ -2,10 +2,11 @@
  Module
 	motor_funcitons.hpp
  Description
-	This is a set of funcitons utilizing the clearpath sFoundation motor
+	This is a set of functions utilizing the Clearpath sFoundation motor
 	control library. This library is intended to abstract the node-based
 	functions in sFoundation to work on a machine level with an arbitrary
-	number of axes.
+	number of axes and an arbitrary number of nodes per axis.
+	It also incorporates Accelerometer Feedback from a YEI 3-space sensor.
 
 *****************************************************************************/
 #ifndef MOTOR_FUNCTIONS_HPP_
@@ -14,7 +15,7 @@
 #include "pubSysCls.h"	
 #include <vector>
 #include "vector_operators.hpp"
-#include "ThreeSpace_API_C_3.0.6/threespace_api_export.h"
+#include "YEI_functions.hpp"
 
 /*-------------------------------- Defines ---------------------------------*/
 
@@ -23,8 +24,6 @@
 class machine {
 private:
 	sFnd::SysManager* SC4_mgr;
-	TSS_ComPort YEI_port;
-	tss_device_id YEI_device_id;
 	void load_config_f(char delimiter);
 	int open_ports_f();
 	int enable_nodes_f();

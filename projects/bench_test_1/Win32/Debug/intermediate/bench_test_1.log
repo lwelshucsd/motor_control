@@ -1,21 +1,27 @@
-﻿  test_tank_functions.cpp
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(202,24): warning C4018: '>': signed/unsigned mismatch
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(208,29): warning C4018: '<': signed/unsigned mismatch
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(278,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(315,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(332,44): warning C4244: '=': conversion from '_Ty' to 'int', possible loss of data
+﻿  YEI_functions.cpp
+  bench_test_1.cpp
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\bench_test_1.cpp(78,112): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\bench_test_1.cpp(82,107): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  test_tank_functions.cpp
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(132,24): warning C4018: '>': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(138,29): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(208,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(245,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(262,44): warning C4244: '=': conversion from '_Ty' to 'int', possible loss of data
           with
           [
               _Ty=double
           ]
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(341,50): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(478,38): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(478,30): warning C4244: 'initializing': conversion from 'double' to 'const int', possible loss of data
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(536,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(572,46): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(271,50): warning C4244: 'argument': conversion from 'double' to 'int32_t', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(404,38): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(404,30): warning C4244: 'initializing': conversion from 'double' to 'const int', possible loss of data
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(473,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\test_tank_functions.cpp(515,46): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+  Generating Code...
   Copying sFoundation Files
   cwd=C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\ srcArch=Win32 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\Win32 destDir="C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\Win32\Debug\"
           1 file(s) copied.
           1 file(s) copied.
           1 file(s) copied.
+     Creating library C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.lib and object C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exp
   bench_test_1.vcxproj -> C:\Users\tobia\Desktop\MOD\TTV Test Bed\Software\motor_control\projects\bench_test_1\Win32\Debug\bench_test_1.exe

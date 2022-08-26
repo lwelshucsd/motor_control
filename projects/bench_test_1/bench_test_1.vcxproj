@@ -214,6 +214,7 @@
     <ClCompile Include="general_functions.cpp" />
     <ClCompile Include="test_tank_functions.cpp" />
     <ClCompile Include="vector_operators.cpp" />
+    <ClCompile Include="YEI_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />
@@ -224,6 +225,7 @@
     <ClInclude Include="test_tank_functions.hpp" />
     <ClInclude Include="ThreeSpace_API_C_3.0.6\threespace_api_export.h" />
     <ClInclude Include="vector_operators.hpp" />
+    <ClInclude Include="YEI_functions.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,3 +1,4 @@
+#pragma once
 //Required include files
 #include <Windows.h>
 #include <iostream>
