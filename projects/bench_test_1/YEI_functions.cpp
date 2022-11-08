@@ -69,4 +69,9 @@ void accelerometer::initialize_f() {
 
 	printf("Finished press Enter to continue");
 	getchar();
+
 }
+
+//std::vector<double> accelerometer::measure_all_f() {
+//
+//}
