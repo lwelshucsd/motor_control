@@ -52,7 +52,7 @@ int CML_control_loop_f(machine my_machine) {
 		cout << "2: Linear Jog\n";
 		cout << "3: Change Velocity Limit\n";
 		cout << "4: Home Axis\n";
-		cout << "5: No Command Currently Added (Will be 'Print Machine Info'\n";
+		cout << "5: No Command Currently Added (Will be 'Print Machine Info)'\n";
 		//cout << "x: Repeat last operation\n"
 		//cout << "x: Preset toolpaths\n";
 		//cout << "x: Machine Info\n";
