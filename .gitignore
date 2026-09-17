@@ -48,3 +48,8 @@ ThreeSpace_API_C_3.0.6\docs
 # .vs/Example-Motion/v16/Browse.VC.db
 # .vs/Example-Motion/v16/Browse.VC.db
 TestTankCL.exe - Shortcut.lnk
+
+projects/bench_test_1/Win32
+projects/bench_test_1/Debug
+projects/bench_test_1/x64
+projects/bench_test_1/x64/Debug
