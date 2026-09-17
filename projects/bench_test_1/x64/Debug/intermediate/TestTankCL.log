@@ -1,0 +1,6 @@
+﻿  Copying sFoundation Files
+  cwd=C:\Users\Test Tank\Documents\GitHub\motor_control\projects\ srcArch=x64 srcConfig=Debug dllDir=..\sFoundation Source\sFoundation\win\Debug\x64 destDir="C:\Users\Test Tank\Documents\GitHub\motor_control\projects\bench_test_1\x64\Debug\"
+          1 file(s) copied.
+          1 file(s) copied.
+          1 file(s) copied.
+  TestTankCL.vcxproj -> C:\Users\Test Tank\Documents\GitHub\motor_control\projects\bench_test_1\x64\Debug\TestTankCL.exe
