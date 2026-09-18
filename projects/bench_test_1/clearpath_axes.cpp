@@ -28,6 +28,8 @@
 using namespace sFnd;
 namespace fs = std::filesystem;
 
+std::fstream* logfile;
+
 /*------------------------------ Module Code -------------------------------*/
 bool move_is_done_f(class IPort& SC4_port) {
 
@@ -636,8 +638,13 @@ int machine::start_up_f() {
 
 	load_config_f(':');
 
-	std::fstream* logfile = nullptr;
-	open_log_file_f(logfile);
+
+	// 2026 09 18 LW: Added logging functionality
+	logfile = open_log_file_f();
+	if (logfile == nullptr) {
+		msg_user_f("Unable to open logfile! Continuing without logging.");
+	}
+	
 
 	size_t port_count = open_ports_f();
 

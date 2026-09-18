@@ -154,9 +154,9 @@ void save_array_f(std::vector<std::vector<double>> input_array) {
 // 2026 09 18 LW: Added logging functionality
 
 
-bool open_log_file_f(std::fstream* file) {
+std::fstream* open_log_file_f() {
 
-	bool ret = false;
+	std::fstream* fsptr = nullptr;
 
 	// Get the current time
 	std::time_t epoch = std::time(nullptr);
@@ -177,11 +177,10 @@ bool open_log_file_f(std::fstream* file) {
 
 	// If file opened successfully, assign pointer & return true
 	if (logfile.is_open()) {
-		ret = true;
-		file = &logfile;
+		fsptr = &logfile;
 	}
 
-	return ret;
+	return fsptr;
 }
 
 void log_str_f(char* str) {
