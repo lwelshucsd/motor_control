@@ -636,6 +636,8 @@ int machine::start_up_f() {
 
 	load_config_f(':');
 
+	std::fstream* logfile = nullptr;
+	open_log_file_f(logfile);
 
 	size_t port_count = open_ports_f();
 

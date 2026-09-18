@@ -11,10 +11,17 @@
 #include "general_functions.hpp"
 #include <iostream>
 #include <fstream>
+#include <filesystem>
+#include <ctime>
 /*--------------------------- External Variables ---------------------------*/
 /*----------------------------- Module Defines -----------------------------*/
 /*------------------------------ Module Types ------------------------------*/
 /*---------------------------- Module Variables ----------------------------*/
+static const char* logfile_dir = "logs";
+static const char* logfile_prefix = "gantrylog_";
+static const char* logfile_suffix = ".txt";
+#define LOGFILE_FNAME_BUF_LEN	64
+static char logfile_fname_buf[LOGFILE_FNAME_BUF_LEN];
 
 /*--------------------- Module Function Prototypes -------------------------*/
 /*------------------------------ Module Code -------------------------------*/
@@ -140,6 +147,55 @@ void save_array_f(std::vector<std::vector<double>> input_array) {
 		ofs << '\n';
 	}
 }
+
+
+
+
+// 2026 09 18 LW: Added logging functionality
+
+
+bool open_log_file_f(std::fstream* file) {
+
+	bool ret = false;
+
+	// Get the current time
+	std::time_t epoch = std::time(nullptr);
+
+	// Create a formatted time string
+	const uint8_t ts_buf_len = 16;
+	char ts_buf[ts_buf_len];
+	std::strftime(ts_buf, ts_buf_len, "%Y%m%d-%H%M%S", std::gmtime(& epoch));
+
+	// Create the logfile name (prefix + time)
+	std::snprintf(logfile_fname_buf, LOGFILE_FNAME_BUF_LEN, "%s/%s%s%s", logfile_dir, logfile_prefix, ts_buf, logfile_suffix);
+
+	// Set up log folder
+	std::filesystem::create_directories(logfile_dir);
+
+	// Attempt to open the logfile
+	std::fstream logfile(logfile_fname_buf, std::ios::out);
+
+	// If file opened successfully, assign pointer & return true
+	if (logfile.is_open()) {
+		ret = true;
+		file = &logfile;
+	}
+
+	return ret;
+}
+
+void log_str_f(char* str) {
+
+
+}
+
+void close_log_file_f(std::fstream file) {
+
+
+}
+
+
+
 /*----------------------------- Test Harness -------------------------------*/
 
 /*------------------------------- Footnotes --------------------------------*/
