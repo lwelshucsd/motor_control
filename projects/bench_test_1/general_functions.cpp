@@ -23,6 +23,8 @@ static const char* logfile_suffix = ".txt";
 #define LOGFILE_FNAME_BUF_LEN	64
 static char logfile_fname_buf[LOGFILE_FNAME_BUF_LEN];
 
+static std::fstream* logfile_ptr;
+
 /*--------------------- Module Function Prototypes -------------------------*/
 /*------------------------------ Module Code -------------------------------*/
 // General Functions
@@ -154,9 +156,9 @@ void save_array_f(std::vector<std::vector<double>> input_array) {
 // 2026 09 18 LW: Added logging functionality
 
 
-std::fstream* open_log_file_f() {
+bool open_log_file_f() {
 
-	std::fstream* fsptr = nullptr;
+	bool ret = false;
 
 	// Get the current time
 	std::time_t epoch = std::time(nullptr);
@@ -173,24 +175,25 @@ std::fstream* open_log_file_f() {
 	std::filesystem::create_directories(logfile_dir);
 
 	// Attempt to open the logfile
-	std::fstream logfile(logfile_fname_buf, std::ios::out);
+	logfile_ptr = new std::fstream(logfile_fname_buf, std::ios::out);
 
 	// If file opened successfully, assign pointer & return true
-	if (logfile.is_open()) {
-		fsptr = &logfile;
+	if (logfile_ptr->is_open()) {
+		ret = true;
 	}
 
-	return fsptr;
+	return ret;
 }
 
 void log_str_f(char* str) {
 
-
+	logfile_ptr->write(str, strlen(str));
+	logfile_ptr->flush();
 }
 
 void close_log_file_f(std::fstream file) {
 
-
+	logfile_ptr->close();
 }
 
 

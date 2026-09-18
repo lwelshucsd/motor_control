@@ -28,7 +28,7 @@
 using namespace sFnd;
 namespace fs = std::filesystem;
 
-std::fstream* logfile;
+//std::fstream* logfile;
 
 /*------------------------------ Module Code -------------------------------*/
 bool move_is_done_f(class IPort& SC4_port) {
@@ -272,6 +272,11 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 		SC4_port.Nodes(iNode).Motion.Adv.TriggerGroup(1);	// add all to same trigger group
 		SC4_port.Nodes(iNode).Motion.Adv.MovePosnStart(node_input_cnts, target_is_absolute, true);
 	}
+
+
+	// 2026 09 18 LW: Added logging functionality
+	log_str_f("test!\r\n");
+
 	SC4_port.Nodes(0).Motion.Adv.TriggerMovesInMyGroup();	// Trigger group
 
 
@@ -640,8 +645,7 @@ int machine::start_up_f() {
 
 
 	// 2026 09 18 LW: Added logging functionality
-	logfile = open_log_file_f();
-	if (logfile == nullptr) {
+	if (!open_log_file_f()) {
 		msg_user_f("Unable to open logfile! Continuing without logging.");
 	}
 	
