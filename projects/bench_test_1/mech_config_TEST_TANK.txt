@@ -1,0 +1,15 @@
+//Config_test
+node_is_follower		[0 or 1]	: {0, 0, 1, 0}
+node_sign				[1 or -1]	: {1, -1, 1, 1}
+node_lead				[units]		: {108, 108, 108, 8}
+node_cnts_per_rev		[cnts]		: {6400, 6400, 6400, 6400}
+node_parent_axis		[0,1,2...]	: {0, 1, 1, 2}
+node_is_rotary_axis		[0 or 1]	: {0, 0, 0, 0}
+//machine_accel_limit		[cnts/s^2]	: 1066667
+//machine_accel_limit		[cnts/s^2]	:  533333
+machine_accel_limit		[cnts/s^2]	:  100000
+machine_velocity_limit	[units/s]	: 50
+//machine_velocity_max	[units/s]	: 750
+machine_velocity_max	[units/s]	: 1000
+homing_speed			[units/s]	: 5
+// IF NEW VARIABLES ARE ADDED, MAKE SURE TO ADD TO LOAD CONFIG FUNCTION
