@@ -204,7 +204,20 @@ void log_move_linear_f(int axis, double pos, double input_vec, bool absolute, do
 	std::time_t epoch = std::time(nullptr);
 
 	// Generate the log message for the linear move
-	snprintf(log_msg_buf, LOG_MSG_BUF_LEN, "%lu,move,%d,%.2f,%.2f\n\n", (unsigned long)epoch, axis, distance, vel);
+	snprintf(log_msg_buf, LOG_MSG_BUF_LEN, "%lu,move,%d,%.2f,%.2f\n", (unsigned long)epoch, axis, distance, vel);
+
+	// Write the log message string to the logfile
+	log_str_f(log_msg_buf);
+}
+
+
+void log_home_axis_f(int axis)
+{
+	// Note the time
+	std::time_t epoch = std::time(nullptr);
+
+	// Generate the log message for the homing command
+	snprintf(log_msg_buf, LOG_MSG_BUF_LEN, "%lu,home,%d\n", (unsigned long)epoch, axis);
 
 	// Write the log message string to the logfile
 	log_str_f(log_msg_buf);

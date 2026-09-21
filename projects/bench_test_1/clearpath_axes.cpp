@@ -421,6 +421,9 @@ int machine::home_axis_f(int axis_id) {
 
 		printf("Homing Axis %d\n", axis_id);
 
+		// 2026 09 21 LW: Added logging for homing command
+		log_home_axis_f(axis_id);
+
 		int num_axis_nodes = std::count(node_axis.begin(), node_axis.end(), axis_id);	// Count the number of nodes on the axis
 
 		if (num_axis_nodes == 1) {
