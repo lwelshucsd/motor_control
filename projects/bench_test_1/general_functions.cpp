@@ -22,6 +22,8 @@ static const char* logfile_prefix = "gantrylog_";
 static const char* logfile_suffix = ".txt";
 #define LOGFILE_FNAME_BUF_LEN	64
 static char logfile_fname_buf[LOGFILE_FNAME_BUF_LEN];
+#define LOG_MSG_BUF_LEN		64
+static char log_msg_buf[LOG_MSG_BUF_LEN];
 
 static std::fstream* logfile_ptr;
 
@@ -185,11 +187,29 @@ bool open_log_file_f() {
 	return ret;
 }
 
+
 void log_str_f(char* str) {
 
 	logfile_ptr->write(str, strlen(str));
 	logfile_ptr->flush();
 }
+
+
+void log_move_linear_f(int axis, double pos, double input_vec, bool absolute, double vel)
+{
+	// Calculate the distance for this move
+	double distance = input_vec - (absolute ? pos : 0);
+
+	// Note the time
+	std::time_t epoch = std::time(nullptr);
+
+	// Generate the log message for the linear move
+	snprintf(log_msg_buf, LOG_MSG_BUF_LEN, "%lu,move,%d,%.2f,%.2f\n\n", (unsigned long)epoch, axis, distance, vel);
+
+	// Write the log message string to the logfile
+	log_str_f(log_msg_buf);
+}
+
 
 void close_log_file_f(std::fstream file) {
 

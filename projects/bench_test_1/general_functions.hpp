@@ -30,6 +30,7 @@ void save_array_f(std::vector<std::vector<double>> input_array);
 // 2026 09 18 LW: Added logging functionality
 bool open_log_file_f();
 void log_str_f(char* str);
+void log_move_linear_f(int axis, double pos, double input_vec, bool absolute, double vel);
 void close_log_file_f();
 /*------------------------------ End of file -------------------------------*/
 #endif /* MOTOR_FUNCTIONS_HPP_ */
