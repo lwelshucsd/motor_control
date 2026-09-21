@@ -29,6 +29,8 @@ using namespace sFnd;
 namespace fs = std::filesystem;
 
 //std::fstream* logfile;
+#define LOG_MSG_BUF_LEN		64
+static char log_msg_buf[LOG_MSG_BUF_LEN];
 
 /*------------------------------ Module Code -------------------------------*/
 bool move_is_done_f(class IPort& SC4_port) {
@@ -275,7 +277,14 @@ std::vector<double> machine::move_linear_f(std::vector<double> input_vec, bool t
 
 
 	// 2026 09 18 LW: Added logging functionality
-	log_str_f("test!\r\n");
+	std::time_t epoch = std::time(nullptr);
+	for (int i = 0; i < input_vec.size(); i++) {
+
+		snprintf(log_msg_buf, LOG_MSG_BUF_LEN, "%lu,move,%d,%f,%f\n", (unsigned long)epoch, i, input_vec[i], machine_velocity_limit);
+
+		log_str_f(log_msg_buf);
+	}
+	
 
 	SC4_port.Nodes(0).Motion.Adv.TriggerMovesInMyGroup();	// Trigger group
 
