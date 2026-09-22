@@ -13,6 +13,7 @@
 #include <fstream>
 #include <filesystem>
 #include <ctime>
+#include <Windows.h>
 /*--------------------------- External Variables ---------------------------*/
 /*----------------------------- Module Defines -----------------------------*/
 /*------------------------------ Module Types ------------------------------*/
@@ -188,7 +189,7 @@ bool open_log_file_f() {
 }
 
 
-void log_str_f(char* str) {
+void log_str_f(const char* str) {
 
 	logfile_ptr->write(str, strlen(str));
 	logfile_ptr->flush();
@@ -250,51 +251,73 @@ void execute_command_script_f()
 		std::string line;
 		while (std::getline(script, line))
 		{
+			// Print out line (for debugging)
 			std::cout << line << '\n';
 
-			switch (line[0])
-			{
-				// 1: Change position
-				case '1':
+			// Check if this might be a valid command line
+			if ((line.length() > 2) && (line[1] == ' ')) {
 
-					break;
+				// Isolate the command character and the argument
+				char cmd = line[0];
+				std::string arg = line.substr(2, std::string::npos);
+				std::vector argv = parse_string_f(arg, ',');
 
-				// 2: Linear jog
-				case '2':
+				std::string msg_str = "";
+				std::time_t epoch = std::time(nullptr);
 
-					break;
+				switch (cmd)
+				{
+					// 1: Change position
+					case '1':
 
-				// 3: Set max velocity
-				case '3':
+						break;
 
-					break;
+					// 2: Linear jog
+					case '2':
 
-				// 4: Home axis
-				case '4':
+						break;
 
-					break;
+					// 3: Set max velocity
+					case '3':
 
-				// d: Delay
-				case 'd':
+						break;
 
-					break;
+					// 4: Home axis
+					case '4':
 
-				// l: Log message
-				case 'l':
+						break;
 
-					break;
+					// d: Delay
+					//		Delay for given number of milliseconds
+					case 'd':
+						Sleep((DWORD)argv[0]);
+						break;
 
-				// w: Wait for user confirmation
-				case 'w':
+					// l: Log message
+					//		Add a custom message to the logfile
+					case 'l':
+						msg_str.append(std::to_string(epoch));
+						msg_str.append(",msg,");
+						msg_str.append(arg);
+						msg_str.append("\n");
 
-					break;
+						log_str_f(msg_str.c_str());
 
-				default:
-					//std::cout << line;
-					break;
+						break;
+
+					// w: Wait for user confirmation
+					case 'w':
+
+						break;
+
+					// Catch non-command lines here
+					default:
+						//std::cout << line;
+						break;
+				}
+
+
 			}
-
-
 
 
 
