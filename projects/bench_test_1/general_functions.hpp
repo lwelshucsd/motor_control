@@ -11,6 +11,7 @@
 /*----------------------------- Include Files ------------------------------*/
 
 #include "pubSysCls.h"	
+#include "clearpath_axes.hpp"
 #include <string>
 #include <vector> 
 
@@ -33,6 +34,6 @@ void log_str_f(const char* str);
 void log_move_linear_f(int axis, double pos, double input_vec, bool absolute, double vel);
 void log_home_axis_f(int axis);
 void close_log_file_f(std::fstream file);
-void execute_command_script_f();
+void execute_command_script_f(machine my_machine);
 /*------------------------------ End of file -------------------------------*/
 #endif /* MOTOR_FUNCTIONS_HPP_ */

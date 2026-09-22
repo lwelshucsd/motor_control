@@ -231,7 +231,7 @@ void close_log_file_f(std::fstream file) {
 }
 
 
-void execute_command_script_f()
+void execute_command_script_f(machine my_machine)
 {
 	std::string script_fname;
 
@@ -269,22 +269,24 @@ void execute_command_script_f()
 				{
 					// 1: Change position
 					case '1':
-
+						my_machine.current_position = my_machine.move_linear_f(argv, true);
 						break;
 
 					// 2: Linear jog
 					case '2':
-
+						my_machine.current_position = my_machine.move_linear_f(argv, false);
 						break;
 
 					// 3: Set max velocity
 					case '3':
-
+						if (argv[0] <= my_machine.config.machine_velocity_max) {
+							my_machine.config.machine_velocity_limit = argv[0];
+						}
 						break;
 
 					// 4: Home axis
 					case '4':
-
+						my_machine.home_axis_f(argv[0]);
 						break;
 
 					// d: Delay
@@ -307,7 +309,9 @@ void execute_command_script_f()
 
 					// w: Wait for user confirmation
 					case 'w':
-
+						std::cin.clear();
+						std::cin.ignore(100, '\n');
+						msg_user_f(arg.c_str());
 						break;
 
 					// Catch non-command lines here

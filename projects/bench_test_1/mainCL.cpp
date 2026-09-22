@@ -119,7 +119,7 @@ int CML_control_loop_f(machine my_machine) {
 
 			break;
 		case 6: //Execute a Script
-			execute_command_script_f();
+			execute_command_script_f(my_machine);
 			break;
 		default:
 			cout << "That is not a valid command.\n";
