@@ -1,0 +1,36 @@
+// Ignore comments and whitespace!
+
+// Set velocity to 100mm/s
+set_vel,100
+
+// Home the 0 axis
+home,0
+
+// Change position of axis 0 to 100mm
+chg_pos,0,
+
+
+
+// Set velocity to 100mm/s
+3 50
+
+// Home the 0 axis
+4 0
+
+// Change position of axis 0 to 100mm
+1 100
+// With more axes: 1 100,100
+
+// Linear jog axis 0 by -50mm
+2 -50
+// With more axes: 1 -50,-50
+
+
+// Delay for 60 seconds
+d 60000
+
+// Add a message to the logfile
+l "Hello World"
+
+
+

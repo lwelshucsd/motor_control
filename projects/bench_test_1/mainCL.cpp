@@ -53,6 +53,7 @@ int CML_control_loop_f(machine my_machine) {
 		cout << "3: Change Velocity Limit\n";
 		cout << "4: Home Axis\n";
 		cout << "5: No Command Currently Added (Will be 'Print Machine Info)'\n";
+		cout << "6: Execute a Script\n";
 		//cout << "x: Repeat last operation\n"
 		//cout << "x: Preset toolpaths\n";
 		//cout << "x: Machine Info\n";
@@ -116,6 +117,9 @@ int CML_control_loop_f(machine my_machine) {
 			break;
 		case 5: //Display Machine Info
 
+			break;
+		case 6: //Execute a Script
+			execute_command_script_f();
 			break;
 		default:
 			cout << "That is not a valid command.\n";

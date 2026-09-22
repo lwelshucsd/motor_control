@@ -230,6 +230,81 @@ void close_log_file_f(std::fstream file) {
 }
 
 
+void execute_command_script_f()
+{
+	std::string script_fname;
+
+	// Print the CWD to help the user navigate to the script file properly
+	std::cout << "Current path: " << std::filesystem::current_path().string() << "\n";
+
+	// Get the script file path from the user
+	printf("Please input the name of the script file (relative to current path): ");
+	std::cin >> script_fname;
+	std::cout << script_fname << '\n';
+
+	// Try to open the script file
+	std::fstream script(script_fname, std::ios::in);
+	if (script.is_open()) {
+
+		// If successful, handle each line in the script file
+		std::string line;
+		while (std::getline(script, line))
+		{
+			std::cout << line << '\n';
+
+			switch (line[0])
+			{
+				// 1: Change position
+				case '1':
+
+					break;
+
+				// 2: Linear jog
+				case '2':
+
+					break;
+
+				// 3: Set max velocity
+				case '3':
+
+					break;
+
+				// 4: Home axis
+				case '4':
+
+					break;
+
+				// d: Delay
+				case 'd':
+
+					break;
+
+				// l: Log message
+				case 'l':
+
+					break;
+
+				// w: Wait for user confirmation
+				case 'w':
+
+					break;
+
+				default:
+					//std::cout << line;
+					break;
+			}
+
+
+
+
+
+		}
+	}
+
+
+
+}
+
 
 /*----------------------------- Test Harness -------------------------------*/
 
