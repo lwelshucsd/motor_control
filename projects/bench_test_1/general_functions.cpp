@@ -262,8 +262,10 @@ void execute_command_script_f(machine my_machine)
 				std::string arg = line.substr(2, std::string::npos);
 				std::vector argv = parse_string_f(arg, ',');
 
+				// Initialize some variables (compiler got upset initializing inside switch statement)
 				std::string msg_str = "";
 				std::time_t epoch = std::time(nullptr);
+				DWORD delay_time_left = 0;
 
 				switch (cmd)
 				{
@@ -292,7 +294,21 @@ void execute_command_script_f(machine my_machine)
 					// d: Delay
 					//		Delay for given number of milliseconds
 					case 'd':
-						Sleep((DWORD)argv[0]);
+						delay_time_left = (DWORD)argv[0];
+						while (delay_time_left > 0)
+						{
+							if (delay_time_left > 1000) {
+								Sleep(1000);
+								delay_time_left -= 1000;
+								printf("(%lu seconds left)\n", delay_time_left / 1000);
+							}
+							else {
+								Sleep(delay_time_left);
+								delay_time_left = 0;
+							}
+							//printf("(%.3f seconds left)\n", (double)delay_time_left / 1000);
+
+						}
 						break;
 
 					// l: Log message
@@ -327,8 +343,12 @@ void execute_command_script_f(machine my_machine)
 
 		}
 	}
+	// Alert the user if script file open was unsuccessful
+	else {
+		printf("Unable to open file \"%s\".\n", script_fname.c_str());
+	}
 
-
+	script.close();
 
 }
 
